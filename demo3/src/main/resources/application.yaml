@@ -1,3 +1,6 @@
 spring:
   application:
     name: demo3
+  profiles:
+    active: dev
+# 이 파일을 읽어라

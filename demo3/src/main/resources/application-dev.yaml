@@ -1,0 +1,8 @@
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO                # 스프링과 라이브러리는 INFO이상만 콘솔에 출력
+    com.example.demo3: DEBUG  #내가 작성한 코드는 DEBUG 이상까지 출력
