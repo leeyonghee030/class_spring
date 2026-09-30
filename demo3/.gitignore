@@ -35,3 +35,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+##운영체제가 만드는 파일
+.DS_Stoee
+Thumbs.db
+
+##비밀값
+.env
+*.env
+!.env.example
