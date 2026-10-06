@@ -11,9 +11,9 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #localhost말고 나중에 나른 서버에 연결가능
-    url: jdbc:mysql://localhost:3306/myblog?serverTimezone=Asia/Seoul
-    username: root
-    password: qwer1234$
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   # JPA 설정
   jpa:

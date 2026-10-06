@@ -57,15 +57,16 @@ public class BoardController {
     //Spring 폼 데이터를 객체로 변환하는 과정 (데이터 바인딩 메커니즘)
     // 폼 데이터 바인딘: Spring이 HTTP 요펑 파라미터를 객체로 자동 변환
     public  String save (BoardRequest.SaveDto reqDto) {
+        //TODO 수정 예정
         //1. dto  class에서 entity class 타임으로 변환
-        Board board = Board.builder()
-                .title(reqDto.getTitle())
-                .content(reqDto.getContent())
-                .username(reqDto.getUsername())
-                .build();
-                //new Board(reqDto.getTitle(),reqDto.getContent(),reqDto.getUsername());
-        Board boardEntity = boardPersistRepository.save(board);
-        //아직안씀 예시로해봄
+//        Board board = Board.builder()
+//                .title(reqDto.getTitle())
+//                .content(reqDto.getContent())
+//                .user(reqDto.getUsername())
+//                .build();
+//                //new Board(reqDto.getTitle(),reqDto.getContent(),reqDto.getUsername());
+//        Board boardEntity = boardPersistRepository.save(board);
+//        //아직안씀 예시로해봄
 
         return "redirect:/";
     }
