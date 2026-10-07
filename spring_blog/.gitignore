@@ -146,3 +146,7 @@ $RECYCLE.BIN/
 .env
 *.env
 !.env.example
+
+# Gradle / 빌드 산출물 (매 빌드마다 바뀌는 생성물 — 추적하면 안 됨)
+.gradle/
+build/

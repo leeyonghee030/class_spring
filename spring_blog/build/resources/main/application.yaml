@@ -1,8 +1,0 @@
-spring:
-  config:
-    import: optional:file:.env[.properties] # 스프링은 .env를 자동으로 읽지않습니다 읽을수 있도록 설정추가
-  mustache:
-    servlet:
-      expose-session-attributes: true #  머스태치 파일에서 세션에 담을 갑슬 바로 사용간으
-  profiles:
-    active: local
