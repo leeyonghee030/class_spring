@@ -13,6 +13,19 @@ public class UserPersistRepository {
 
     private final EntityManager em;
 
+    //회원 정보 조회 :수정폼
+    public User findById(Long id) {
+       User user = em.find(User.class,id);
+
+       if (user == null) {
+           throw new RuntimeException("사용자를 찾을 수 없습니다");
+       }
+       return user;
+    }
+
+
+
+
     //회원 정보 조회 - 로그인 (사용자 이름, 비밀번호 확인)
     public User findByUsernameAndPassword(String username, String password) {
         try {
@@ -35,6 +48,19 @@ public class UserPersistRepository {
         }
     }
 
+
+    //회원 정보 수정
+    @Transactional
+    public User updateById(Long id, UserRequest.UpdateDto updateDto) {
+        // 수정할 엔티티를 먼저 조회해서 영속 상태로 만듬
+        User userEntity = em.find(User.class, id);
+        if (userEntity == null) {
+            throw new IllegalArgumentException("수정할 회원을 찾을 수 없습니다");
+        }
+        // 영속 상태 엔티티의 필드 값 변경 -> 트랜잭션 커밋 시점에 더티 체킹으로 UPDATE 실행
+        userEntity.update(updateDto.getPassword());
+        return userEntity;
+    }
 
     // 회원가입 :
     @Transactional

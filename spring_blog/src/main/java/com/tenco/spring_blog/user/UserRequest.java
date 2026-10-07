@@ -5,6 +5,25 @@ import lombok.Data;
 
 public class UserRequest {
 
+    //회원 정보 수정 DTO
+    @Data
+    public static class UpdateDto {
+        private String password;
+
+        public void validate() {
+            if (password == null || password.trim().isEmpty()) {
+                throw new IllegalArgumentException("비밀번호는 필수입니다");
+            }
+            //필요하다면 길이수 제한 ,특수문자 포함여부 정규식
+            if (password.length() < 4) {
+                throw new IllegalArgumentException("비밀번호는 4글자 이상이여야 합니다");
+            }
+        }
+
+
+
+    }
+
     // 회원가입용 DTO
     @Data
     public static class JoinDto {
@@ -58,4 +77,6 @@ public class UserRequest {
         }
 
     }
+
+
 }

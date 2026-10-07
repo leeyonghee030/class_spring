@@ -2,10 +2,7 @@ package com.tenco.spring_blog.user;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 
@@ -25,6 +22,7 @@ public class User {
     @Column(unique = true)
     private String username;
     @Column(length = 100)
+    @Setter
     private String password;
     //같은 사용자명은 두번 가입 할수없도록 유니크제약
     @Column(unique = true)
@@ -40,6 +38,13 @@ public class User {
         this.password = password;
         this.email = email;
     }
+
+    public void update(String password){
+        this.password = password;
+
+    }
+
+
 
 
 }
