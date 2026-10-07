@@ -1,5 +1,7 @@
 package com.tenco.spring_blog.board;
 
+import com.tenco.spring_blog.user.User;
+import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 
 public class BoardRequest {
@@ -16,10 +18,19 @@ public class BoardRequest {
             if (content == null || content.trim().isEmpty()) {
                 throw new IllegalArgumentException("내용은 필수입니다");
             }
-            if (username == null || username.trim().isEmpty()) {
-                throw new IllegalArgumentException("이름은 필수입니다");
-            }
+
         }
+
+        public Board toEntity(User user) {
+            Board board = Board.builder()
+                    .title(title)
+                    .content(content)
+                    .user(user)
+                    .build();
+
+            return board;
+        }
+
     }
 
     @Data

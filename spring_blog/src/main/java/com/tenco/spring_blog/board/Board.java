@@ -63,6 +63,10 @@ public class Board {
         //3. 트랜잭션 커밋 시점에 변경된 필드만 update 쿼리를 자동 생성
         //4. UPDATE board_tb SET title = ?, content =? where id= ?
     }
+    //게시글 수정/삭제 권한 체크용 편의메서드
+    public boolean isOwner(Long userId) {
+        return this.user.getId().equals(userId);
+    }
 
 
 

@@ -2,6 +2,7 @@ package com.tenco.spring_blog.user;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @Table(name = "user_tb")
 @Entity
+@AllArgsConstructor
 public class User {
 
     @Id
