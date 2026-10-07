@@ -89,20 +89,70 @@ public class BoardController {
     //<a href="/board/{{board.id}}/update" class="btn btn-warning me-1">수정</a>
     // GET http://localhost:8080/board/1/update
     @GetMapping("/board/{id}/update")
-    public  String updateForm (@PathVariable long id, Model model) {
-        Board board = boardPersistRepository.findById(id);
-        model.addAttribute("board", board);
-        return "board/update-form";
+    public  String updateForm (@PathVariable long id, Model model, HttpSession session,RedirectAttributes rttr) {
+        //인증검사
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login";
+        }
+        //2. 권한체크
+
+        try {
+            Board board = boardPersistRepository.findById(id);
+            //3. 권한 체크 : 본인이 작성한 게시글만 수정가능
+            if (!board.isOwner(sessionUser.getId())) {
+                throw new RuntimeException("수정 권한이 없습니다");
+            }
+
+            model.addAttribute("board", board);
+            //PRG 패턴
+            // /board/{id}
+            return "board/update-form";
+
+        } catch (Exception e) {
+            //권한이없음 또는 다른오류
+            log.error("삭제 실패 : {}", e.getMessage());
+            rttr.addFlashAttribute("errorMessage", e.getMessage());
+            //권한 없음 기타오류
+            return "redirect:/board/" + id;
+        }
     }
     // post http://localhost:8080/board/1/update
     // 게시글 수정 요청 기능
     @PostMapping("/board/{id}/update")
-    public  String update (@PathVariable long id,BoardRequest.updateDto reqDto) {
-       reqDto.validate(); // 유효성 실패 (throw 던져짐)
-        boardPersistRepository.updateById(id, reqDto);
-        //PRG 패턴
-        // /board/{id}
-        return "redirect:/board/" +id; //리다이렉트 수정된 게시글 상세보기 화면이동
+    public  String update (@PathVariable long id,BoardRequest.updateDto updateDto, HttpSession session, Model model) {
+
+        //인증검사
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login";
+        }
+        //2. 권한체크
+        Board boardEntity = boardPersistRepository.findById(id);
+        try {
+
+
+            if (!boardEntity.isOwner(sessionUser.getId())) {
+             throw new RuntimeException("수정 권한이 없습니다");
+            }
+        //3. 입력 데이터 검사
+            updateDto.validate(); // 유효성 실패 (throw 던져짐)
+
+            //4. 더치 체킹으로 업데이트함
+            boardPersistRepository.updateById(id, updateDto);
+            //PRG 패턴
+            // /board/{id}
+            //5. 수정완료후 해당 게시글 상세보기로 리다이렉트처리
+            return "redirect:/board/" +id; //리다이렉트 수정된 게시글 상세보기 화면이동
+
+        } catch (Exception e) {
+            //내부에서 뷰 리졸브 활용한 템플릿 파일 찾기
+            model.addAttribute("board",boardEntity);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "board/update-form";
+        }
+
+
     }
 
     // 게시글 삭제
