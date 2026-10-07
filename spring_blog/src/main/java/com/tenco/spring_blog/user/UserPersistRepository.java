@@ -1,6 +1,8 @@
 package com.tenco.spring_blog.user;
 
 
+import com.tenco.spring_blog._core.error.Exception400;
+import com.tenco.spring_blog._core.error.Exception404;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
@@ -55,7 +57,7 @@ public class UserPersistRepository {
         // 수정할 엔티티를 먼저 조회해서 영속 상태로 만듬
         User userEntity = em.find(User.class, id);
         if (userEntity == null) {
-            throw new IllegalArgumentException("수정할 회원을 찾을 수 없습니다");
+            throw new Exception404("수정할 회원을 찾을 수 없습니다");
         }
         // 영속 상태 엔티티의 필드 값 변경 -> 트랜잭션 커밋 시점에 더티 체킹으로 UPDATE 실행
         userEntity.update(updateDto.getPassword());
