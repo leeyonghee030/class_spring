@@ -78,7 +78,7 @@ public class BoardPersistRepositoryTest {
 
         // 3. 연관관계가 올바르게 저장되었는지 확인
         Assertions.assertThat(savedBoard.getUser()).isNotNull();
-        Assertions.assertThat(savedBoard.getUser().getUsername()).isEqualTo("testuser");
+        Assertions.assertThat(savedBoard.getUser().getUsername()).isEqualTo("tens");
 
         // 4 원본 객체와 반환된 객체가 동일한 참조인지 확인
         Assertions.assertThat(board).isSameAs(savedBoard);
