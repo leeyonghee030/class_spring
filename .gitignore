@@ -1,2 +1,8 @@
 .omc/
 .omc/
+
+# Claude Code / OMC (로컬 AI 도구 설정 — 저장소에 노출하지 않음)
+.claude/
+.omc/
+CLAUDE.md
+AGENTS.md
