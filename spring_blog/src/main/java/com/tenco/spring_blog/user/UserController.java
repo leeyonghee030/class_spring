@@ -56,6 +56,7 @@ public class UserController {
             log.error("회원가입 실패 : {} ", e.getMessage());
             model.addAttribute("errorMessage",e.getMessage());
             return "user/join-form";
+
         }
 
 
