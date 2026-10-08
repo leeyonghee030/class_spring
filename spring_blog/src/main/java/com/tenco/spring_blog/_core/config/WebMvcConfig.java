@@ -1,5 +1,6 @@
 package com.tenco.spring_blog._core.config;
 
+import com.tenco.spring_blog._core.interceptor.IpBlockInterceptor;
 import com.tenco.spring_blog._core.interceptor.LoginInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 
     private final LoginInterceptor loginInterceptor;
+    private final IpBlockInterceptor ipBlockInterceptor;
 
     //내가 정의한 인터셉터를 설정 클래스 등록할수있다
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+
+        registry.addInterceptor(ipBlockInterceptor)
+                .addPathPatterns("/**");
+
+
         //LoginInterceptor를 시스템에 등록
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/user/**","/board/**")
@@ -25,6 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 // \\d+는 정규 표현식으로 1개 이상의 숫자를 의미한다
                 // 예: /board/1, /board/123 (상세보기)은 로그인 없이도 접근가능
                 // /board/1/update 처럼 뒤에 경로가 더 붙으면 제외 대상이 아니게 된다
+
 
     }
 }
