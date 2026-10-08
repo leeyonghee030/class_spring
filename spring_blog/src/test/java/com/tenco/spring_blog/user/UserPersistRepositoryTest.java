@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-@Import(UserPersistRepository.class)
+@Import(UserService.class)
 @DataJpaTest // JPA 테스트에 필요한 환경을 자동으로 구성합니다.
 public class UserPersistRepositoryTest {
 
     @Autowired // DI
-    private UserPersistRepository userPersistRepository;
+    private UserService userService;
 
     @Test
     public void findByUsernameAndPassword_로그인_성공_테스트() {
