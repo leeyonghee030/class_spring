@@ -36,12 +36,12 @@ public class BoardController {
     }
 
     // GET http://localhost:8080/board/3
+    //excludePathPatterns 제외되어 로그인 접근가능
     @GetMapping("/board/{id}")
     public String detail(@PathVariable(name = "id") Long id, Model model) {
-//        Board boardEntity = boardPersistRepository.findById(id);
+
         Board boardEntity = boardPersistRepository.findByIdWithJPQL(id);
         if (boardEntity == null) {
-            //추후에 404에러 페이지를 만들어서 처리할 예정
             throw new Exception404("게시글을 찾을 수 없습니다");
         }
 
@@ -53,11 +53,7 @@ public class BoardController {
     // GET http://localhost:8080/board/save
     @GetMapping("/board/save")
     public String saveForm(HttpSession session) {
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
-
+        //인터셉터에서 인증검사 진행됨
         return "board/save-form";
     }
 
@@ -69,9 +65,6 @@ public class BoardController {
     public String save(BoardRequest.SaveDto saveDto, HttpSession session) {
         //1. 인증검사
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
         //2. 유효성검사
         //입력데이터검증
         saveDto.validate();
@@ -90,9 +83,7 @@ public class BoardController {
     public String updateForm(@PathVariable long id, Model model, HttpSession session) {
         //인증검사
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
+
         //2. 권한체크
 
 
@@ -117,9 +108,6 @@ public class BoardController {
 
         //인증검사
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
         //2. 권한체크
         Board boardEntity = boardPersistRepository.findById(id);
 
@@ -144,9 +132,7 @@ public class BoardController {
     public String delete(@PathVariable Long id, HttpSession session) throws Exception403 {
         //1. 인증 검사 (로그인 여뷰 확인)
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
+
 
         //2. 권한 확인 (자기 작성한 글인지 여부확인)
 

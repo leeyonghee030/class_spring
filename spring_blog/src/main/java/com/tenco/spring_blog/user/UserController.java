@@ -88,9 +88,7 @@ public class UserController {
     public String updateForm(Model model, HttpSession session) {
         //1. 인증검사
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
+
 
         User user = userPersistRepository.findById(sessionUser.getId());
         model.addAttribute("user", user);
@@ -103,9 +101,7 @@ public class UserController {
 
         //1. 인증검사
         User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
+
         // 유효성검사
         updateDto.validate();
 
