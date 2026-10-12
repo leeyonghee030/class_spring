@@ -6,14 +6,12 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
 
-@Import(BoardJpaRepository.class)
 @DataJpaTest
-public class BoardPersistRepositoryTest {
+public class BoardJpaRepositoryTest {
 
     @Autowired
-    private BoardJpaRepository boardPersistRepository;
+    private BoardJpaRepository boardJpaRepository;
 
 
 
@@ -27,29 +25,28 @@ public class BoardPersistRepositoryTest {
                 .content("삭제할 내용")
                 .user(user)
                 .build();
-        Board savedBoard = boardPersistRepository.save(board);
+        Board savedBoard = boardJpaRepository.save(board);
         Long targetId = savedBoard.getId();
 
         // when
         // 2. 저장된 게시글의 ID로 삭제 실행
-        boardPersistRepository.deleteById(targetId);
+        boardJpaRepository.deleteById(targetId);
 
         // then
         // 3. 삭제 후 해당 ID로 조회 시 null이 반환되는지 확인
-//        Board deletedBoard = boardPersistRepository.findById(targetId);
+//        Board deletedBoard = boardJpaRepository.findById(targetId);
 //        Assertions.assertThat(deletedBoard).isNull();
     }
 
     @Test
-    public void deleteById_존재하지않는_게시글_삭제시_예외발생_테스트() {
+    public void deleteById_존재하지않는_게시글_삭제시_예외없이_무시됨_테스트() {
         // given
         Long nonExistentId = 999L;
 
         // when & then
-        // 존재하지 않는 ID 삭제 요청 시 IllegalArgumentException 예외 발생 검증
-        Assertions.assertThatThrownBy(() -> boardPersistRepository.deleteById(nonExistentId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("삭제할 게시물을 찾을수 없습니다");
+        // JpaRepository.deleteById()는 존재하지 않는 ID에 대해 예외를 던지지 않고 조용히 무시한다
+        Assertions.assertThatCode(() -> boardJpaRepository.deleteById(nonExistentId))
+                .doesNotThrowAnyException();
     }
 
 
@@ -65,7 +62,7 @@ public class BoardPersistRepositoryTest {
                 .build();
 
 //        when
-        Board savedBoard = boardPersistRepository.save(board);
+        Board savedBoard = boardJpaRepository.save(board);
 
         // then
         // 1. 자동 생성된 ID값 확인
