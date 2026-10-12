@@ -48,6 +48,12 @@ public class UserService {
                     throw new Exception400("이미 존재하는 사용자명 입니다");
                 });
 
+        // 두번쨰 이메일 중복 검사
+        userJpaRepository.findByEmail(joinDto.getEmail()).ifPresent(user -> {
+            log.warn("회원가입 실패- 중복된 이메일명: {}", joinDto.getEmail());
+            throw new Exception400("이미 존재하는 이메일명 입니다");
+        });
+
         //저장
         User savedUser = userJpaRepository.save(joinDto.toEntity());
 

@@ -10,7 +10,6 @@ public class BoardRequest {
     public static  class SaveDto {
         private String title;
         private String content;
-        private String username;
 
         public void validate () {
             if (title == null || title.trim().isEmpty()) {
