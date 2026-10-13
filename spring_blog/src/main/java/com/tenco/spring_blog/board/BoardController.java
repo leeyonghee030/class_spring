@@ -35,10 +35,13 @@ public class BoardController {
     // GET http://localhost:8080/board/3
     //excludePathPatterns 제외되어 로그인 접근가능
     @GetMapping("/board/{id}")
-    public String detail(@PathVariable(name = "id") Long id, Model model) {
+    public String detail(@PathVariable(name = "id") Long id, Model model,HttpSession session) {
 
-        BoardResponse.DetailDto board = boardService.findById(id);
-        model.addAttribute("board", board);
+        BoardResponse.DetailDto detailDto = boardService.findById(id);
+        model.addAttribute("board", detailDto);
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        boolean isOwner = sessionUserDto != null && detailDto.getUserId().equals(sessionUserDto.getId());
+        model.addAttribute("isOwner", isOwner);
         return "board/detail";
     }
 

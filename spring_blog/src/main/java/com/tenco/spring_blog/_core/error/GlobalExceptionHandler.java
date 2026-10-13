@@ -1,6 +1,8 @@
 package com.tenco.spring_blog._core.error;
 
+import com.tenco.spring_blog._core.util.Define;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class GlobalExceptionHandler {
 
     // 특정 예외 타입이 발생했을 떄 실행될 메서그로 지정
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(Exception400.class)
     public String ex400(Exception400 e, HttpServletRequest request, Model model) {
         log.warn("=== 400 Bad Request error ===");
@@ -22,10 +25,11 @@ public class GlobalExceptionHandler {
         log.warn("에러 메세지 : {}", e.getMessage());
         log.warn("예외 클래스 : {}", e.getClass().getSimpleName());
 
+        addSessionUserDto(request,model);// 추가 헤더에 sessionUserDto 담기
         model.addAttribute("msg",e.getMessage());
         return "err/400";
     }
-
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(Exception401.class)
     public String ex401(Exception401 e, HttpServletRequest request, RedirectAttributes rttr) {
         log.warn("=== 401 Unauthorized error ===");
@@ -66,30 +70,31 @@ public class GlobalExceptionHandler {
                 """.formatted(msg);
         return msg2;
     }
-
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(Exception404.class)
     public String ex404(Exception404 e, HttpServletRequest request, Model model) {
         log.warn("=== 404 Not Found error ===");
         log.info("요청 URL : {}", request.getRequestURI());
         log.info("찾을 수 없음 오류: {}", e.getMessage());
         log.info("예외 클래스 : {}", e.getClass().getSimpleName());
-
+        addSessionUserDto(request,model);
         model.addAttribute("msg",e.getMessage());
         return "err/404";
     }
-
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception500.class)
     public String ex500(Exception500 e, HttpServletRequest request, Model model) {
         log.warn("=== 500 Internal Server Error error ===");
         log.warn("요청 URL : {}", request.getRequestURI());
         log.warn("서버 오류: {}", e.getMessage());
         log.warn("스태 트레이스 : {}", e); //전체 스택 트레이스 포함
-
+        addSessionUserDto(request,model);
         model.addAttribute("msg","네트워크 일시적인 장애");
         return "err/500";
     }
 
     //기타 모든 runtimeException
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
     public String ex500(RuntimeException e, HttpServletRequest request, Model model) {
         log.warn("=== 예상치 못한 런타인 에러발생 ===");
@@ -102,6 +107,14 @@ public class GlobalExceptionHandler {
         return "err/500";
     }
 
+    //오류 화면에서도 헤더의 로그인 메뉴가 보이도록 sessionUserDto 를 Model에 추가
+    private void addSessionUserDto(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute(Define.SESSION_USER) != null){
+            model.addAttribute(Define.SESSION_USER,session.getAttribute(Define.SESSION_USER));
+        }
+
+    }
 
 
 
