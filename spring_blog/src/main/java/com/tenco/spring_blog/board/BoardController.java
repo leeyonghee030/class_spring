@@ -2,6 +2,7 @@ package com.tenco.spring_blog.board;
 
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.util.Define;
+import com.tenco.spring_blog.user.SessionUserDto;
 import com.tenco.spring_blog.user.User;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class BoardController {
     // http://localhost:8080/
     @GetMapping({"/", "/board/list"})
     public String list(Model model) {
-        List<Board> boardList = boardService.findAll();
+        List<BoardResponse.ListDto> boardList = boardService.findAll();
         model.addAttribute("boardList", boardList);
         return "board/list";
     }
@@ -36,7 +37,7 @@ public class BoardController {
     @GetMapping("/board/{id}")
     public String detail(@PathVariable(name = "id") Long id, Model model) {
 
-        Board board = boardService.findById(id);
+        BoardResponse.DetailDto board = boardService.findById(id);
         model.addAttribute("board", board);
         return "board/detail";
     }
@@ -56,7 +57,7 @@ public class BoardController {
     // 폼 데이터 바인딘: Spring이 HTTP 요펑 파라미터를 객체로 자동 변환
     public String save(BoardRequest.SaveDto saveDto, HttpSession session) {
         //1. user
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
+        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
         //2. 유효성검사
         saveDto.validate();
         boardService.save(saveDto, sessionUser);
@@ -66,16 +67,16 @@ public class BoardController {
 
     }
 
-    //TODO 1. 인가처리를 서비스단으로 이동 예정 
+
     // GET http://localhost:8080/board/1/update
     @GetMapping("/board/{id}/update")
     public String updateForm(@PathVariable long id, Model model, HttpSession session) {
-        Board board = boardService.findById(id);
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        if (!board.isOwner(sessionUser.getId())){
-            throw new Exception403("수정할 권한이 없습니다");
-        }
-        model.addAttribute("board", board);
+
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+
+        BoardResponse.UpdateDto updateFormDto = boardService.findByIdAndUpdateForm(id,sessionUserDto.getId());
+
+        model.addAttribute("board", updateFormDto);
         return "board/update-form";
 
 
@@ -87,8 +88,8 @@ public class BoardController {
     public String update(@PathVariable long id, BoardRequest.updateDto updateDto, HttpSession session) {
 
         updateDto.validate();
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        boardService.update(id, updateDto, sessionUser);
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        boardService.update(id, updateDto, sessionUserDto);
         return "redirect:/board/" + id; //리다이렉트 수정된 게시글 상세보기 화면이동
 
     }
@@ -98,8 +99,8 @@ public class BoardController {
     @PostMapping("/board/{id}/delete")
     public String delete(@PathVariable Long id, HttpSession session) throws Exception403 {
 
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
-        boardService.delete(id, sessionUser);
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        boardService.delete(id, sessionUserDto);
         return "redirect:/";
     }
 

@@ -38,7 +38,7 @@ public class UserService {
      * @return 회원가입된 정보
      */
     @Transactional //쓰기 작업으로
-    public User join(UserRequest.JoinDto joinDto) {
+    public UserResponse.JoinDto join(UserRequest.JoinDto joinDto) {
         log.info("회원가입 서비스 시작 -사용자 명: {}", joinDto.getUsername());
 
         // 값이 있다면 에러가 실행된다 (중복이면 에러를 던지기위해 .ifPresent)
@@ -57,8 +57,9 @@ public class UserService {
         //저장
         User savedUser = userJpaRepository.save(joinDto.toEntity());
 
+
         log.info("회원가입 서비스 완료 -사용자 명 : {}, ID : {}", joinDto.getUsername(), savedUser.getId());
-        return savedUser;
+        return new UserResponse.JoinDto(savedUser);
     }
 
     /**
@@ -68,7 +69,7 @@ public class UserService {
      * @return 로그인 된 사용자 정보
      */
     // 로그인
-    public User login(UserRequest.LoginDto loginDto) {
+    public SessionUserDto login(UserRequest.LoginDto loginDto) {
         log.info("로그인 서비스 시작 -사용자 명: {}", loginDto.getUsername());
 
         User user = userJpaRepository.findByUsernameAndPassword(
@@ -79,7 +80,7 @@ public class UserService {
                 });
 
         log.info("로그인 성공 -사용자 명: {}", loginDto.getUsername());
-        return user;
+        return new SessionUserDto(user);
     }
 
     /**
@@ -87,7 +88,7 @@ public class UserService {
      * @param id 사용자 PK
      * @return 사용자 정보
      */
-    public User findById(Long id) {
+    private User findById(Long id) {
         log.info("사용자 정보 조회 -사용자 ID: {}", id);
         return userJpaRepository.findById(id).orElseThrow(()->{
             throw new Exception404("사용자를 찾을 수 없습니다");
@@ -102,14 +103,26 @@ public class UserService {
      * @param updateDto 수정할 정보
      * @return 수정된 사용자 정보
      */
+    //정보 수정후 세션 동기화용
+    //세선 동기화용 DTo반환
     @Transactional
-    public User updateById(Long id, UserRequest.UpdateDto updateDto) {
+    public SessionUserDto updateById(Long id, UserRequest.UpdateDto updateDto) {
         log.info("사용자 정보 수정 시작 ");
 
         User user = findById(id);
         user.update(updateDto.getPassword());
-        return user;
+        return new SessionUserDto(user);
 
+    }
+
+    /**
+     * 회원 정보 수정화면 : 화면에 필요한 값만 담는 DTO반환
+     * @param userId
+     * @return
+     */
+    public  UserResponse.updateFormDto findUpdateForm(Long userId){
+        User user =findById(userId);
+        return new UserResponse.updateFormDto(user);
 
     }
 

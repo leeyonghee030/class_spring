@@ -48,10 +48,9 @@ public class UserController {
 
         dto.validate();
 
-        User user = userService.login(dto);
+        SessionUserDto sessionUserDto = userService.login(dto);
 
-        user.setPassword(null);
-        session.setAttribute(Define.SESSION_USER, user);
+        session.setAttribute(Define.SESSION_USER, sessionUserDto);
 
         return "redirect:/";
 
@@ -61,10 +60,10 @@ public class UserController {
     @GetMapping("/user/update")
     public String updateForm(Model model, HttpSession session) {
         //1. 인증검사
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
 
-        User user = userService.findById(sessionUser.getId());
-        model.addAttribute("user", user);
+        UserResponse.updateFormDto updateFormDto = userService.findUpdateForm(sessionUserDto.getId());
+        model.addAttribute("user", updateFormDto);
 
         return "user/update-form";
     }
@@ -73,15 +72,14 @@ public class UserController {
     public String update(UserRequest.UpdateDto updateDto, Model model, HttpSession session) {
 
         //1. 인증검사
-        User sessionUser = (User) session.getAttribute(Define.SESSION_USER);
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
 
         // 유효성검사
         updateDto.validate();
 
         //세션 동기화
-        User updatedUser = userService.updateById(sessionUser.getId(), updateDto);
-        updatedUser.setPassword(null);
-        session.setAttribute(Define.SESSION_USER, updatedUser);
+        SessionUserDto updateSessionUserDto = userService.updateById(sessionUserDto.getId(), updateDto);
+        session.setAttribute(Define.SESSION_USER, updateSessionUserDto);
 
         //성공후 메인페이지로 리다이렉트
         return "redirect:/";
