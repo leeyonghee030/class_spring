@@ -3,6 +3,8 @@ package com.tenco.spring_blog.board;
 
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.error.Exception404;
+import com.tenco.spring_blog.reply.ReplyJpaRepository;
+import com.tenco.spring_blog.reply.ReplyService;
 import com.tenco.spring_blog.user.SessionUserDto;
 import com.tenco.spring_blog.user.User;
 import com.tenco.spring_blog.user.UserJpaRepository;
@@ -27,6 +29,7 @@ public class BoardService {
 
     private final BoardJpaRepository boardJpaRepository;
     private  final UserJpaRepository userJpaRepository;
+    private final ReplyJpaRepository replyJpaRepository;
 
     /**
      * 게시글 저장
@@ -128,7 +131,7 @@ public class BoardService {
      * @return 수정된 게시글 리턴
      */
     @Transactional
-    public Board update(Long id, BoardRequest.updateDto updateDto, SessionUserDto sessionUser) {
+    public Board update(Long id, BoardRequest.UpdateDto updateDto, SessionUserDto sessionUser) {
 
         log.info("게시글 수정 시작");
         //게시글 조회
@@ -162,6 +165,7 @@ public class BoardService {
             throw new Exception403("본인이 작성한 게시글만 삭제 가능합니다");
         }
 
+        replyJpaRepository.deleteByBoardId(id);
         boardJpaRepository.deleteById(id);
         log.info("게시글 삭제 완료");
     }

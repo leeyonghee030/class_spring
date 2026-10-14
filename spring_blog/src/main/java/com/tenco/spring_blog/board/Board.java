@@ -51,7 +51,7 @@ public class Board {
     }
 
     // 자신의 상태값을 변경하는 메서스 추가 (영속성 엔티티를 수정하는 메서드)
-    public void update(BoardRequest.updateDto updateDto) {
+    public void update(BoardRequest.UpdateDto updateDto) {
         //비즈니스 규칙검증
         updateDto.validate();
         // 영속 상태에 있는 엔티티의 필드 값을 여기서 변경

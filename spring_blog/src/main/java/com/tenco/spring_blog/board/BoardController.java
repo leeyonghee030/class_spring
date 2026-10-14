@@ -2,6 +2,8 @@ package com.tenco.spring_blog.board;
 
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.util.Define;
+import com.tenco.spring_blog.reply.ReplyResponseDto;
+import com.tenco.spring_blog.reply.ReplyService;
 import com.tenco.spring_blog.user.SessionUserDto;
 import com.tenco.spring_blog.user.User;
 import jakarta.servlet.http.HttpSession;
@@ -22,6 +24,7 @@ public class BoardController {
 
     //
     private final BoardService boardService;
+    private  final ReplyService replyService;
 
     // GET http://localhost:8080/board/list
     // http://localhost:8080/
@@ -41,8 +44,14 @@ public class BoardController {
         model.addAttribute("board", detailDto);
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
         boolean isOwner = sessionUserDto != null && detailDto.getUserId().equals(sessionUserDto.getId());
+        Long sessionUserId = (sessionUserDto == null) ? null : sessionUserDto.getId();
+        List<ReplyResponseDto.ListDto> replyList = replyService.findAllByBoardId(id, sessionUserId, detailDto.getUserId());
+
         model.addAttribute("isOwner", isOwner);
+        model.addAttribute("replyList", replyList);
+
         return "board/detail";
+
     }
 
 
@@ -88,7 +97,7 @@ public class BoardController {
     // post http://localhost:8080/board/1/update
     // 게시글 수정 요청 기능
     @PostMapping("/board/{id}/update")
-    public String update(@PathVariable long id, BoardRequest.updateDto updateDto, HttpSession session) {
+    public String update(@PathVariable long id, BoardRequest.UpdateDto updateDto, HttpSession session) {
 
         updateDto.validate();
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
@@ -101,6 +110,7 @@ public class BoardController {
     //  /board/{{board.id}}/delete method="post
     @PostMapping("/board/{id}/delete")
     public String delete(@PathVariable Long id, HttpSession session) throws Exception403 {
+
 
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
         boardService.delete(id, sessionUserDto);

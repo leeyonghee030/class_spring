@@ -34,7 +34,7 @@ public class BoardRequest {
     }
 
     @Data
-    public static class updateDto {
+    public static class UpdateDto {
         private String title;
         private String content;
 
