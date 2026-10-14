@@ -4,6 +4,7 @@ import com.tenco.spring_blog._core.util.Define;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -40,6 +41,27 @@ public class GlobalExceptionHandler {
         rttr.addFlashAttribute("errorMessage",e.getMessage());
         return "redirect:/login";
     }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseBody //데이터 반환
+    public String exUnauthorized(UnauthorizedException e, HttpServletRequest request, RedirectAttributes rttr) {
+        log.warn("=== 401 Data반환 Unauthorized error ===");
+        log.warn("요청 URL : {}", request.getRequestURI());
+        log.warn("인증 오류: {}", e.getMessage());
+        log.warn("예외 클래스 : {}", e.getClass().getSimpleName());
+
+        String msg = e.getMessage().replace("`","'"); //백틱이 메시지에 섞여 템플릿 백틱과 충돌하는 것 방지
+
+        String msg2 = """
+                <script>
+                    alert(`%s`);
+                    location.href = "/login"
+                </script>
+                """.formatted(msg);
+        return msg2;
+    }
+
 
 //    @ExceptionHandler(Exception403.class)
 //    public String ex403(Exception403 e, HttpServletRequest request, Model model) {
@@ -102,6 +124,20 @@ public class GlobalExceptionHandler {
         log.warn("에러 타입 : {}", e.getClass().getSimpleName());
         log.warn("에러 메세지 : {}", e.getMessage());
         log.warn("스태 트레이스 : {}", e); //전체 스택 트레이스 포함
+
+        model.addAttribute("msg","시스템 오류 발생. 관리자에게 문의해주세요");
+        return "err/500";
+    }
+
+
+    //데이터베이스 ㅔㅈ약 조건 위반(외래키,unique 중복등)
+    @ResponseStatus(HttpStatus.CONFLICT) //  409 : 현재 데이터 상태와 충돌
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public String exDataIntegrityViolationException(DataIntegrityViolationException e, HttpServletRequest request, Model model) {
+        log.error("=== 데이터베이스 제약 조건 위반===");
+        log.error("요청 URL : {}", request.getRequestURI());
+        //상세원인 (Sql 제약조건 읾은 개발자용 로그에만 남김
+        log.error("원인 : {}", e.getMostSpecificCause().getMessage());
 
         model.addAttribute("msg","시스템 오류 발생. 관리자에게 문의해주세요");
         return "err/500";

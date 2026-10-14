@@ -1,6 +1,7 @@
 package com.tenco.spring_blog._core.interceptor;
 
 import com.tenco.spring_blog._core.error.Exception401;
+import com.tenco.spring_blog._core.error.UnauthorizedException;
 import com.tenco.spring_blog._core.util.Define;
 import com.tenco.spring_blog.user.SessionUserDto;
 import com.tenco.spring_blog.user.User;
@@ -29,7 +30,7 @@ public class LoginInterceptor  implements HandlerInterceptor {
 
         SessionUserDto sessionUserDto = (session == null) ? null : (SessionUserDto) session.getAttribute(Define.SESSION_USER);
         if (sessionUserDto == null) {
-            throw new Exception401("로그인 먼저 해주세요");
+            throw new UnauthorizedException("로그인 먼저 해주세요");
         }
         return true;
 
