@@ -6,3 +6,10 @@ spring:
       expose-session-attributes: false  #  머스태치 파일에서 세션에 담을 갑슬 바로 사용간으
   profiles:
     active: local
+
+server:
+  servlet:
+    session:
+      tracking-modes: cookie #세션 번호를 쿠키로만전달
+
+
