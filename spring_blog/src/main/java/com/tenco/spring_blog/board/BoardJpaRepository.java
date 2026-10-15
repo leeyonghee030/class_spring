@@ -6,12 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface BoardJpaRepository extends JpaRepository<Board, Long> {
 
-        // 기본적인 CRUD 기능 다 만들어 져 있음
+    // 기본적인 CRUD 기능 다 만들어 져 있음
 
     /**
      * 1. 등록 및 수정 : save (Board entity)
@@ -36,11 +35,21 @@ public interface BoardJpaRepository extends JpaRepository<Board, Long> {
     // join fetch 는 이를 한번에 쿼리로 해결함 .
 
 
-
-
     //게시글 페이징 조회 (작성자 함께 조인해서 조회)
     // 정렬은 Pageable 에 담아서 전달하므로 쿼리에 Order by 를 쓰면 안됨
     @Query(value = "select b from Board b join fetch b.user u ",
             countQuery = "select count(b) from Board b")
     Page<Board> findAllJoinUser(Pageable pageable);
+
+    //게시글 검색 +페이징 조회
+    @Query(value = """
+            select b from Board b join fetch b.user
+            where b.title like concat('%',:keyword,'%')
+            or  b.content like concat('%',:keyword,'%')""",
+            countQuery = """
+            select count(b) from Board b
+            where b.title like concat('%',:keyword,'%')
+            or  b.content like concat('%',:keyword,'%')
+            """)
+    Page<Board> findAllKeywordJoinUser(Pageable pageable, @Param("keyword") String keyword);
 }

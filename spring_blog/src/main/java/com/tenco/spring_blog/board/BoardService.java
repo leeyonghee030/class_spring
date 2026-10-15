@@ -80,7 +80,7 @@ public class BoardService {
     }
 
 
-    public BoardResponse.PageDto findAllPage(int page, int size) {
+    public BoardResponse.PageDto findAllPage(int page, int size, String keyword) {
         log.info("게시글 목록 조회 시작 ");
         // 대신 Join fetch를 사용함
 
@@ -89,19 +89,29 @@ public class BoardService {
         int pageIndex = Math.max(0,page-1);
 
         //2. 페이지 크기는  1 ~50 으로 제한 size = 10000같은 요청 방어
-//        int validSize = size > 50 ? Math.min(50,size) : Math.max(1,size);
         int validSize = Math.clamp(size,1,50);
+
 
         // 최신 글이 먼저 오도록 id 내림 차순 정렬 (주문서 생성)
         Pageable pageable = PageRequest.of(pageIndex, validSize, Sort.by(Sort.Direction.DESC, "id"));
+
+        //isBlank -> null이 아닌 상태에서 공백 제거후 개수 확인
+
         //페이징 처리가 된 게시글 목록 조회 요청 (주문 결과 Page)
-        Page<Board> boardPage = boardJpaRepository.findAllJoinUser(pageable);
+        Page<Board> boardPage;
+        if (keyword == null || keyword.isBlank()){
+            boardPage = boardJpaRepository.findAllJoinUser(pageable);
+        } else {
+            boardPage = boardJpaRepository.findAllKeywordJoinUser(pageable,keyword);
+        }
+
 
         // 조회후 트랜잭션 안에서 응답DTO 변환 처리
-        BoardResponse.PageDto pageDto = new BoardResponse.PageDto(boardPage);
         //방법1
-        return pageDto;
+        return new BoardResponse.PageDto(boardPage);
     }
+
+
     /**
      * 게시글 목록 조회 (메인페이지용)
      *
