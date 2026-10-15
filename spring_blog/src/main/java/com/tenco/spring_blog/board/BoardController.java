@@ -9,12 +9,12 @@ import com.tenco.spring_blog.user.User;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
+import javax.naming.Name;
 import java.util.List;
 
 @Slf4j
@@ -29,9 +29,10 @@ public class BoardController {
     // GET http://localhost:8080/board/list
     // http://localhost:8080/
     @GetMapping({"/", "/board/list"})
-    public String list(Model model) {
-        List<BoardResponse.ListDto> boardList = boardService.findAll();
-        model.addAttribute("boardList", boardList);
+    public String list(@RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "3") int size, Model model) {
+        BoardResponse.PageDto pageDto = boardService.findAllPage(page,size);
+        model.addAttribute("boardPage",pageDto);
         return "board/list";
     }
 

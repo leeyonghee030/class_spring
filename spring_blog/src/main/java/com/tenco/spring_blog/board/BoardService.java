@@ -10,6 +10,11 @@ import com.tenco.spring_blog.user.User;
 import com.tenco.spring_blog.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,34 +79,37 @@ public class BoardService {
         return detailDto;
     }
 
+
+    public BoardResponse.PageDto findAllPage(int page, int size) {
+        log.info("게시글 목록 조회 시작 ");
+        // 대신 Join fetch를 사용함
+
+        //1. 1부터 시작하는 번호를 0부터로 변환 (0이하가 들어와도 0으로 보장)
+//        int pageIndex = (page <= 0) ? 0 : page -1;
+        int pageIndex = Math.max(0,page-1);
+
+        //2. 페이지 크기는  1 ~50 으로 제한 size = 10000같은 요청 방어
+//        int validSize = size > 50 ? Math.min(50,size) : Math.max(1,size);
+        int validSize = Math.clamp(size,1,50);
+
+        // 최신 글이 먼저 오도록 id 내림 차순 정렬 (주문서 생성)
+        Pageable pageable = PageRequest.of(pageIndex, validSize, Sort.by(Sort.Direction.DESC, "id"));
+        //페이징 처리가 된 게시글 목록 조회 요청 (주문 결과 Page)
+        Page<Board> boardPage = boardJpaRepository.findAllJoinUser(pageable);
+
+        // 조회후 트랜잭션 안에서 응답DTO 변환 처리
+        BoardResponse.PageDto pageDto = new BoardResponse.PageDto(boardPage);
+        //방법1
+        return pageDto;
+    }
     /**
      * 게시글 목록 조회 (메인페이지용)
      *
      * @return 게시글 목록(작성자 정보 포함)
+     *
+     *
      */
-    public List<BoardResponse.ListDto> findAll() {
-        log.info("게시글 목록 조회 시작 ");
-        // 대신 Join fetch를 사용함
-        List<Board> boardList = boardJpaRepository.findAllJoinUser();
 
-        //방법1
-        return boardList.stream().map(BoardResponse.ListDto::new).toList();
-
-
-//        //방법2
-//        List<BoardResponse.ListDto> dtoList = boardList.stream()
-//                .map(board -> new  BoardResponse.ListDto(board))
-//                .toList();
-
-//        //방법3
-//        List<BoardResponse.ListDto> dtoList = new ArrayList<>();
-//        for (Board board : boardList) {
-//            dtoList.add(new BoardResponse.ListDto(board));
-//        }
-
-//        log.info("게시글 목록 조회 완료 ");
-//        return boardList;
-    }
 
     /**
      * 게시글 수정 화면 요청 (인가 검사)
