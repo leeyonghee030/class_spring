@@ -13,10 +13,15 @@ public class SessionUserDto {
     private Long id;
     private String username;
     private String email;
+    private boolean admin; //관리자 여부
+    private String roleDisplay; //화면 표시용
+
 
     public SessionUserDto(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
+        this.admin = user.isAdmin();
+        this.roleDisplay = this.admin ? "ADMIN" : "USER";
     }
 }
