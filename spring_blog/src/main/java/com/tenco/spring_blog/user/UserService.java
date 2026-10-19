@@ -1,14 +1,12 @@
 package com.tenco.spring_blog.user;
 
 import com.tenco.spring_blog._core.error.Exception400;
-import com.tenco.spring_blog._core.error.Exception401;
 import com.tenco.spring_blog._core.error.Exception404;
+import com.tenco.spring_blog._core.util.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.swing.plaf.PanelUI;
 
 
 /*
@@ -53,10 +51,10 @@ public class UserService {
             log.warn("회원가입 실패- 중복된 이메일명: {}", joinDto.getEmail());
             throw new Exception400("이미 존재하는 이메일명 입니다");
         });
-
-        //저장
-        User savedUser = userJpaRepository.save(joinDto.toEntity());
-
+        //3. 프로필 이미지 저장  새롭게 생긴 파일 이름이 리턴됨
+        String profileImage = FileUtil.saveImage(joinDto.getProfileImage());
+        // 4. 프로필 파일 이름과 회원정보저장
+        User savedUser = userJpaRepository.save(joinDto.toEntity(profileImage));
 
         log.info("회원가입 서비스 완료 -사용자 명 : {}, ID : {}", joinDto.getUsername(), savedUser.getId());
         return new UserResponse.JoinDto(savedUser);
@@ -84,13 +82,14 @@ public class UserService {
     }
 
     /**
-     *  사용자 정보조회
+     * 사용자 정보조회
+     *
      * @param id 사용자 PK
      * @return 사용자 정보
      */
     private User findById(Long id) {
         log.info("사용자 정보 조회 -사용자 ID: {}", id);
-        return userJpaRepository.findById(id).orElseThrow(()->{
+        return userJpaRepository.findById(id).orElseThrow(() -> {
             throw new Exception404("사용자를 찾을 수 없습니다");
         });
     }
@@ -99,7 +98,8 @@ public class UserService {
 
     /**
      * 회원정보 수정 처리
-     * @param id 사용자 Pk
+     *
+     * @param id        사용자 Pk
      * @param updateDto 수정할 정보
      * @return 수정된 사용자 정보
      */
@@ -110,22 +110,46 @@ public class UserService {
         log.info("사용자 정보 수정 시작 ");
 
         User user = findById(id);
-        user.update(updateDto.getPassword());
+
+        if (updateDto.hasPassword()) {
+            user.update(updateDto.getPassword());
+        }
+
+        if (updateDto.hasProfileImage()) {
+            String newImage = FileUtil.saveImage(updateDto.getProfileImage());
+            String oldImage = user.getProfileImage();
+            user.updateProfileImage(newImage);
+            // 기존 파일은 서버측 폴더에서 삭제처리
+            FileUtil.deleteFile(oldImage);
+        }
+
         return new SessionUserDto(user);
 
     }
 
+
+    @Transactional
+    public void deleteProfileImage(Long userId) {
+        User user = findById(userId);
+        FileUtil.deleteFile(user.getProfileImage());
+        user.updateProfileImage(null);
+    }
+
     /**
      * 회원 정보 수정화면 : 화면에 필요한 값만 담는 DTO반환
+     *
      * @param userId
      * @return
      */
-    public  UserResponse.updateFormDto findUpdateForm(Long userId){
-        User user =findById(userId);
+    public UserResponse.updateFormDto findUpdateForm(Long userId) {
+        User user = findById(userId);
         return new UserResponse.updateFormDto(user);
 
     }
 
 
-
+    public UserResponse.DetailDto findDetail(Long userId) {
+        User user = findById(userId);
+        return new UserResponse.DetailDto(user);
+    }
 }

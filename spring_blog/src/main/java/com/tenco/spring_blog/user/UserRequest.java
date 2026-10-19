@@ -2,6 +2,9 @@ package com.tenco.spring_blog.user;
 
 import com.tenco.spring_blog._core.error.Exception400;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.swing.text.StyledEditorKit;
 
 
 public class UserRequest {
@@ -10,13 +13,26 @@ public class UserRequest {
     @Data
     public static class UpdateDto {
         private String password;
+        private MultipartFile profileImage;
+
+        //비밀번호를 입력했는지 확인  (null."" 공백만 입력 ->모두 입략안함)
+        public boolean hasPassword() {
+            // 비밀번호 입력시 -> true 반환
+            return password != null && !password.isBlank();
+        }
+        // 새프로필 사진 골랐는지
+        public boolean hasProfileImage() {
+            // 새파일 선택 입력시 -> true 반환
+            return profileImage != null && !profileImage.isEmpty();
+        }
+
 
         public void validate() {
-            if (password == null || password.trim().isEmpty()) {
-                throw new Exception400("비밀번호는 필수입니다");
+            if (!hasPassword() && !hasProfileImage()) {
+                throw new Exception400("변경할 비밀번호나 프로필 사진을 입력해주세요");
             }
             //필요하다면 길이수 제한 ,특수문자 포함여부 정규식
-            if (password.length() < 4) {
+            if (hasPassword() && password.length() < 4) {
                 throw new Exception400("비밀번호는 4글자 이상이여야 합니다");
             }
         }
@@ -31,6 +47,7 @@ public class UserRequest {
         private String username;
         private String password;
         private String email;
+        private MultipartFile profileImage; //프로필 이미지
 
         //회원가입시 데이터 검증 메서드
         public void validate() {
@@ -53,11 +70,12 @@ public class UserRequest {
 
 
 
-        public User toEntity() {
+        public User toEntity(String profileImageFilename) {
             return  User.builder()
                     .username(username)
                     .password(password)
                     .email(email)
+                    .profileImage(profileImageFilename)
                     .build();
         }
     }

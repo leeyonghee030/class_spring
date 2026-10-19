@@ -5,16 +5,16 @@ import com.tenco.spring_blog._core.util.Define;
 import com.tenco.spring_blog.reply.ReplyResponseDto;
 import com.tenco.spring_blog.reply.ReplyService;
 import com.tenco.spring_blog.user.SessionUserDto;
-import com.tenco.spring_blog.user.User;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.naming.Name;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -26,30 +26,30 @@ public class BoardController {
 
     //
     private final BoardService boardService;
-    private  final ReplyService replyService;
+    private final ReplyService replyService;
 
     // GET http://localhost:8080/board/list
     // http://localhost:8080/
     @GetMapping({"/", "/board/list"})
     public String list(@RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "3") int size,
-            @RequestParam(name = "keyword" ,defaultValue = "") String keyword
+                       @RequestParam(name = "size", defaultValue = "3") int size,
+                       @RequestParam(name = "keyword", defaultValue = "") String keyword
             , Model model) {
-        BoardResponse.PageDto pageDto = boardService.findAllPage(page,size, keyword);
-        model.addAttribute("boardPage",pageDto);
-        model.addAttribute("keyword",keyword);
+        BoardResponse.PageDto pageDto = boardService.findAllPage(page, size, keyword);
+        model.addAttribute("boardPage", pageDto);
+        model.addAttribute("keyword", keyword);
         model.addAttribute("isSearch", !keyword.isBlank());
 
         //페이지 링크는 직접 URL 인코딩이 필요하다
-        model.addAttribute("keywordParam",URLEncoder.encode(keyword, StandardCharsets.UTF_8));
+        model.addAttribute("keywordParam", URLEncoder.encode(keyword, StandardCharsets.UTF_8));
 
         return "board/list";
     }
 
     // GET http://localhost:8080/board/3
-    //excludePathPatterns 제외되어 로그인 접근가능
+    //excludePathPatterns 제외되어 로그인 접근ㅌ가능
     @GetMapping("/board/{id}")
-    public String detail(@PathVariable(name = "id") Long id, Model model,HttpSession session) {
+    public String detail(@PathVariable(name = "id") Long id, Model model, HttpSession session) {
 
         BoardResponse.DetailDto detailDto = boardService.findById(id);
         model.addAttribute("board", detailDto);
@@ -97,7 +97,7 @@ public class BoardController {
 
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
 
-        BoardResponse.UpdateDto updateFormDto = boardService.findByIdAndUpdateForm(id,sessionUserDto.getId());
+        BoardResponse.UpdateDto updateFormDto = boardService.findByIdAndUpdateForm(id, sessionUserDto.getId());
 
         model.addAttribute("board", updateFormDto);
         return "board/update-form";

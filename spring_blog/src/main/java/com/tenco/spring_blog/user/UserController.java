@@ -16,6 +16,25 @@ public class UserController {
 
     private final UserService userService;
 
+    @PostMapping("/user/profile-image/delete")
+    public String deleteProfileImage(HttpSession session) {
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        userService.deleteProfileImage(sessionUserDto.getId());
+        return "redirect:/user/detail";
+    }
+
+
+
+    //http://localhost:8080/user/detail
+    @GetMapping("/user/detail")
+    public String detail(Model model, HttpSession session){
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        //조회후
+        UserResponse.DetailDto user = userService.findDetail(sessionUserDto.getId());
+        model.addAttribute("user",user);
+        return "user/detail";
+    }
+
 
     //    GET http://localhost:8080/join
     @GetMapping("/join")
@@ -82,7 +101,7 @@ public class UserController {
         session.setAttribute(Define.SESSION_USER, updateSessionUserDto);
 
         //성공후 메인페이지로 리다이렉트
-        return "redirect:/";
+        return "redirect:/user/detail";
 
     }
 
