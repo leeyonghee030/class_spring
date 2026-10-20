@@ -33,7 +33,6 @@ public class LoginInterceptor  implements HandlerInterceptor {
             throw new UnauthorizedException("로그인 먼저 해주세요");
         }
         return true;
-
     }
 
     //컨트롤러 실행후 뷰가 렌더링되기 바로 직전에 호출 시킬수있다

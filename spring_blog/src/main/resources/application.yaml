@@ -16,4 +16,10 @@ server:
     session:
       tracking-modes: cookie #세션 번호를 쿠키로만전달
 
+#초기 파라미터 설정
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
 

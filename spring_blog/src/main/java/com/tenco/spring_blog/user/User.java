@@ -3,6 +3,7 @@ package com.tenco.spring_blog.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 
@@ -45,13 +46,20 @@ public class User {
     @JoinColumn(name = "user_id", nullable = false)
     private List<UserRole> roles = new ArrayList<>();
 
+    //가입경로 (DB에는 LOCAL, KAKAO 문자열로 저장)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @ColumnDefault("'LOCAL'") // 문자열이므로 안에 작은 따음표 필수
+    private OauthProvider provider;
+
     //id 와 createdAt은 자동으로 채워지므로 빌더에서 제외
     @Builder
-    public User(String username, String password, String email, String profileImage) {
+    public User(String username, String password, String email, String profileImage, OauthProvider provider) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.profileImage = profileImage;
+        this.provider = (provider == null) ? OauthProvider.LOCAL : provider;
     }
 
     public void update(String password){
@@ -88,6 +96,15 @@ public class User {
         return hasRole(Role.ADMIN); //고정값
     }
 
+    public String getProfilePath() {
+        if (this.profileImage == null){
+            return null;
+        }
+        if(this.profileImage.startsWith("http")){
+            return this.profileImage;
+        }
+        return "/images/"+this.profileImage;
+    }
 
 
 }
