@@ -16,8 +16,8 @@ public class KakaoLoginService {
     private  final  UserService userService;
 
     // 카카오 로그인 화면주소
-    public String getAuthorizeUrl() {
-        return kakaoApiClient.getAuthorizeUrl();
+    public String getAuthorizeUrl(String state) {
+        return kakaoApiClient.getAuthorizeUrl(state);
     }
 
     // 카카오 로그인 : 인가 코드 -> 토큰 -> 사용자 정보 -> 가입 또는 로그인

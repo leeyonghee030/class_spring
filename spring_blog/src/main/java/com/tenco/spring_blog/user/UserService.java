@@ -185,7 +185,24 @@ public class UserService {
         //트랙젝션 안에서 sessionsUserDto 생성
 
         return new SessionUserDto(user);
+    }
+    @Transactional
+    public SessionUserDto googleLogin(UserResponse.GoogleUserInfo googleUserInfo) {
+        //1. 카카오 회원 번호로 우리 서비스의 사용자명 만들기
+        String username = "google_" + googleUserInfo.getSub();
 
+        //2. 이미 가입했는지 확인 없으면 자동 회원가입
+        User user = userJpaRepository.findByUsername(username)
+                .orElseGet(()-> joinGoogleUser(username, googleUserInfo));
+
+        //3. 같은 이름의 일반 회원이 있다면 카카오 사용자로 로그인 시키지않음
+        if (user.getProvider() != OauthProvider.GOOGLE){
+            throw new Exception400("이미 사용중인 사용자 명입니다");
+        }
+
+        //트랙젝션 안에서 sessionsUserDto 생성
+
+        return new SessionUserDto(user);
     }
 
     private User joinKakaoUser(String username, UserResponse.KakaoUserInfo kakaoUserInfo) {
@@ -195,6 +212,19 @@ public class UserService {
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .profileImage(kakaoUserInfo.getProperties().getProfileImage())
                 .provider(OauthProvider.KAKAO)
+                .build();
+        user.addRole(Role.USER);
+
+        return userJpaRepository.save(user);
+    }
+
+    private User joinGoogleUser(String username, UserResponse.GoogleUserInfo googleUserInfo) {
+        User user = User.builder()
+                .username(username)
+                .email(username+"@google.com")
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .profileImage(googleUserInfo.getPicture())
+                .provider(OauthProvider.GOOGLE)
                 .build();
         user.addRole(Role.USER);
 

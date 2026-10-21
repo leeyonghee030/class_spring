@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.print.attribute.standard.Media;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Controller // IoC 제어에 역전 싱글톤
@@ -29,21 +30,64 @@ public class UserController {
 
     private final UserService userService;
     private  final  KakaoLoginService kakaoLoginService;
+    private final GoogleLoginService googleLoginService;
 
 
 
 
 
+    @GetMapping("/google-login")
+    public String googleLogin(HttpSession session) {
+        // CSRF 방지용 state 값을 발급해서 세션에 보관하고, 콜백에서 그대로 돌려받는지 검증한다
+        String state = UUID.randomUUID().toString();
+        session.setAttribute(Define.GOOGLE_OAUTH_STATE, state);
+        return "redirect:" + googleLoginService.getAuthorizeUrl(state);
+    }
+    @GetMapping("/oauth/google")
+    public String googleCallback(@RequestParam(name = "code",required = false) String code,
+                                @RequestParam(name = "state",required = false) String state,
+                                @RequestParam(name = "error",required = false) String error,
+                                HttpSession session){
+        String savedState = (String) session.getAttribute(Define.GOOGLE_OAUTH_STATE);
+        session.removeAttribute(Define.GOOGLE_OAUTH_STATE); // 1회성으로만 사용
+
+        // 사용자가 구글 동의 화면에서 취소/거부한 경우 (예: error=access_denied)
+        if (error != null) {
+            throw new UnauthorizedException("구글 로그인이 취소 되었습니다");
+        }
+        if (savedState == null || !savedState.equals(state)) {
+            throw new UnauthorizedException("잘못된 구글 로그인 요청입니다");
+        }
+
+        SessionUserDto sessionUserDto = googleLoginService.login(code);
+        session.setAttribute(Define.SESSION_USER, sessionUserDto);
+        return "redirect:/";
+    }
 
     @GetMapping("/kakao-login")
-    public String kakaoLogin() {
-       return "redirect:" + kakaoLoginService.getAuthorizeUrl();
+    public String kakaoLogin(HttpSession session) {
+        String state = UUID.randomUUID().toString();
+        session.setAttribute(Define.KAKAO_OAUTH_STATE, state);
+        return "redirect:" + kakaoLoginService.getAuthorizeUrl(state);
     }
 
     // 흐름 1. 인가 코드 받기 ->  액세스 토큰 요청 -> 사용자 정보 요청 -> 최초면 자동 회원가입 아니면 로그인
     @GetMapping("/oauth/kakao")
     public String kakaoCallback(@RequestParam(name = "code",required = false) String code,
+                                @RequestParam(name = "state",required = false) String state,
+                                @RequestParam(name = "error",required = false) String error,
                                 HttpSession session){
+        String savedState = (String) session.getAttribute(Define.KAKAO_OAUTH_STATE);
+        session.removeAttribute(Define.KAKAO_OAUTH_STATE);
+
+        // 사용자가 카카오 동의 화면에서 취소/거부한 경우 (예: error=access_denied)
+        if (error != null) {
+            throw new UnauthorizedException("카카오 로그인이 취소 되었습니다");
+        }
+        if (savedState == null || !savedState.equals(state)) {
+            throw new UnauthorizedException("잘못된 카카오 로그인 요청입니다");
+        }
+
         SessionUserDto sessionUserDto = kakaoLoginService.login(code);
         session.setAttribute(Define.SESSION_USER, sessionUserDto);
             return "redirect:/";

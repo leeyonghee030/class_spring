@@ -63,6 +63,11 @@ public class FileUtil {
         if (filename == null || filename.isBlank()) {
             return;
         }
+        // 카카오/구글 로그인 사용자의 프로필 사진은 외부 URL이라 서버에 실제 파일이 없다
+        // (경로에 ':'가 있어 Paths.get()에서 InvalidPathException이 나므로 미리 건너뜀)
+        if (filename.startsWith("http")) {
+            return;
+        }
         try {
             Files.deleteIfExists(Paths.get(UPLOAD_DIR,filename));
         } catch (IOException e) {

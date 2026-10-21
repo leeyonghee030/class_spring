@@ -36,11 +36,12 @@ public class KakaoApiClient {
 
     //1.  카카오 로그인 화면 주소만들기  (로그인 + 동의 할목 화면)
 
-    public String getAuthorizeUrl() {
+    public String getAuthorizeUrl(String state) {
         return AUTHORIZE_URL
                 + "?client_id=" + kakaoClientId
                 + "&redirect_uri=" + kakaoRedirectUri
-                + "&response_type=code";
+                + "&response_type=code"
+                + "&state=" + state;
     }
 
 
@@ -68,7 +69,7 @@ public class KakaoApiClient {
         //요청 보내기
         // 주소, 메서드 , http메서지, 응답 타입
         ResponseEntity<UserResponse.OauthToken> response = restTemplate.exchange(
-                "https://kauth.kakao.com/oauth/token",
+                TOKEN_URL,
                 HttpMethod.POST,
                 tokenRequest,
                 UserResponse.OauthToken.class

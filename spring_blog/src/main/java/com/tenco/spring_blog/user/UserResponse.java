@@ -101,5 +101,32 @@ public class UserResponse {
         }
     }
 
+    // Google 유저 프로필 정보 DTO
+    @Getter
+    @Setter
+    public static class GoogleUserInfo {
+
+        private String sub;
+
+        private String name;
+
+        @JsonProperty("given_name")
+        private String givenName;
+
+        @JsonProperty("family_name")
+        private String familyName;
+
+        private String picture;
+
+        private String email;
+
+        @JsonProperty("email_verified")
+        private Boolean emailVerified;
+
+        private String locale;
+    }
+
+
+
 
 }
