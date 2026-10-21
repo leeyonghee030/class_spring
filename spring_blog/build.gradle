@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    // 비밀번호 해싱 (BCryptPasswordEncoder)
+    implementation 'org.springframework.security:spring-security-crypto'
     // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation 'org.springframework.boot:spring-boot-h2console'
@@ -42,5 +44,11 @@ tasks.named('test') {
     useJUnitPlatform()
     doFirst {
         jvmArgs "-javaagent:${classpath.find { it.name.contains("mockito-core") }}"
+        // Windows 사용자 홈 경로에 한글(비 ASCII)이 포함되면 Mockito의 inline mock maker가
+        // 네이티브 bootstrap classloader 확장(appendToBootstrapClassLoaderSearch)에서 실패한다.
+        // java.io.tmpdir을 한글이 없는 경로로 바꿔서 회피한다.
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            systemProperty 'java.io.tmpdir', "${System.getenv('SystemRoot')}\\Temp"
+        }
     }
 }

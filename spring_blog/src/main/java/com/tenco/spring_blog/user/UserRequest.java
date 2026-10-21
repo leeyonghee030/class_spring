@@ -2,6 +2,7 @@ package com.tenco.spring_blog.user;
 
 import com.tenco.spring_blog._core.error.Exception400;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.text.StyledEditorKit;
@@ -12,6 +13,7 @@ public class UserRequest {
     //회원 정보 수정 DTO
     @Data
     public static class UpdateDto {
+        @ToString.Exclude
         private String password;
         private MultipartFile profileImage;
 
@@ -45,6 +47,7 @@ public class UserRequest {
     @Data
     public static class JoinDto {
         private String username;
+        @ToString.Exclude
         private String password;
         private String email;
         private MultipartFile profileImage; //프로필 이미지
@@ -70,10 +73,10 @@ public class UserRequest {
 
 
 
-        public User toEntity(String profileImageFilename) {
+        public User toEntity(String profileImageFilename, String passwordEncode) {
             return  User.builder()
                     .username(username)
-                    .password(password)
+                    .password(passwordEncode)
                     .email(email)
                     .profileImage(profileImageFilename)
                     .build();
@@ -83,6 +86,7 @@ public class UserRequest {
     @Data
     public static class LoginDto {
         private String username;
+        @ToString.Exclude
         private String password;
 
 

@@ -2,6 +2,7 @@ package com.tenco.spring_blog.board;
 
 
 import com.tenco.spring_blog.user.User;
+import com.tenco.spring_blog.user.UserJpaRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +14,21 @@ public class BoardJpaRepositoryTest {
     @Autowired
     private BoardJpaRepository boardJpaRepository;
 
+    @Autowired
+    private UserJpaRepository userJpaRepository;
+
 
 
     @Test
     public void deleteById_게시글_삭제_테스트() {
         // given
         // 1. 먼저 DB에 테스트용 데이터를 저장하여 삭제할 게시글을 생성 (영속 상태)
-        User user = new User(1L, "tens", "1233", "a@na", null);
+        User user = User.builder()
+                .username("tens")
+                .password("1233")
+                .email("a@na")
+                .build();
+        userJpaRepository.save(user);
         Board board = Board.builder()
                 .title("삭제할 제목")
                 .content("삭제할 내용")
@@ -54,7 +63,12 @@ public class BoardJpaRepositoryTest {
     public void save_저장_포함_게시물_테스트() {
 
 //        given
-        User user = new User(1L,"tens","1233","a@na",null);
+        User user = User.builder()
+                .username("tens")
+                .password("1233")
+                .email("a@na")
+                .build();
+        userJpaRepository.save(user);
         Board board = Board.builder()
                 .title("테스트글")
                 .content("테스트내용")
