@@ -12,9 +12,25 @@
                 <div class="mb-3">
                     <input type="password" class="form-control" placeholder="비밀번호" name="password">
                 </div>
+                {{! 이메일 입력 + 인증 번호 전송 }}
+
                 <div class="mb-3">
-                    <input type="email" class="form-control" placeholder="이메일" name="email">
+                    <input type="email" class="form-control mb-1" placeholder="이메일" name="email" id="email" required>
+                    <button type="button" class="btn btn-outline-secondary"
+                            id="send-btn" onclick="sendCone()" >인증번호 전송</button>
                 </div>
+
+                {{!인증 번호 입력 (메일 발송후 보임)}}
+                <div class="mb-3" id="code-box" style="display: none;">
+                    <div class="input-group">
+                        <input type="text " class="form-control" id="code" placeholder="인증번호 입력" maxlength="10">
+                        <button type="button" class="btn btn-outline-secondary" id="send-code-btn" onclick="verifyCode()">확인</button>
+                    </div>
+                    <div id="msg" class="form-text"></div>
+                </div>
+
+
+
                 <div class="mb-3">
                     <input type="file" class="form-control" id="profileImage"
                            name="profileImage" accept="image/**">
@@ -26,5 +42,89 @@
     </div>
 
 </div>
+
+<script>
+    //인증 완료 여부 (화면안내용), 실제검사는 서버에서
+    let isEmailVerified = false;
+    //1.인증번호 전송
+    async function sendCone() {
+        const email = document.querySelector("#email").value;
+        if (!email) {
+            alert("이메일을 입력해주세요")
+            return;
+        }
+        //메일 발송은 몇 초 걸리므로 그동안 버튼을 막아 중복 요청을 방지한다 (중요)
+        const sendBtn = document.querySelector("#send-btn");
+        sendBtn.disabled = true;  // 버튼 중복 막기
+        sendBtn.innerText = "전송중 ...";
+
+        try {
+            const response = await fetch("/api/email/send", {
+                method: "POST",
+                headers: {"Content-Type" : "application/Json"}, //바디가 JSON 이라고 알림
+                body: JSON.stringify({email: email}) // 객체 --> JSON 문자열로 반환됨
+            });
+
+            const result = await response.json(); // Json 응답 -> 자바 스크립 객체로 변환됨
+            //백엔드 개발자와 어떤 식으로 요청을 보내고 어떤 식으로 응답이 올지 확인 해야한다
+            //백엔드 API에서 Key : message로 내려보내기로 했다
+            // alert(result.message);
+            if (response.ok) {
+                document.querySelector("#code-box").style.display = "block";
+            }
+        }catch (e) {
+            alert("서버와 통신하지 못했습니다")
+        } finally {
+            sendBtn.disabled = false;  // 버튼 중복 막기
+            sendBtn.innerText = "인증번호 전송";
+        }
+
+
+    }
+
+    //2. 인증번호 확인 전송
+        async function verifyCode() {
+            //사용자 이메일, 인증코드 (6자리)
+            const  email = document.querySelector("#email").value;
+            const code = document.querySelector("#code").value;
+
+            if (!code){
+                alert("인증번호를 입력해주세요")
+                return
+            }
+            try {
+               const  response = await fetch("api/email/verify", {
+                   method: "POST",
+                   headers: {"Content-Type" : "application/json"},
+                   body: JSON.stringify({email: email, code: code})// 객체 -? json
+               });
+               const  result = await  response.json(); //json -> 객체
+                const msgBox = document.querySelector("#msg");
+                if (response.ok) {
+                    isEmailVerified = true;
+                    msgBox.innerText = result.message;
+                    msgBox.className = "form-text text-success";
+                    //인증한 이메일을 화면단에서 바꾸지 못하게 잠금 설정
+                    document.querySelector("#email").readOnly = true;
+                    document.querySelector("#code").readOnly = true;
+                    document.querySelector("#send-btn").disabled = true;
+                    document.querySelector("#send-code-btn").disabled = true;
+
+
+
+
+                } else {
+                    msgBox.innerText = result.message;
+                    msgBox.className = "form-text text-danger";
+                }
+            }catch (e) {
+                alert("서버와 통신하지 못했습니다")
+            }
+
+
+        }
+
+
+</script>
 
 {{> layout/footer}}

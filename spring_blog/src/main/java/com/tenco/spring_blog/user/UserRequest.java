@@ -10,6 +10,31 @@ import javax.swing.text.StyledEditorKit;
 
 public class UserRequest {
 
+    //이메일 인증 요청 DTO (발송 롹인 API에서 함께사용)
+    @Data
+    public static class EmailCheckDto{
+
+        private String email; // 1번쨰 요청시 사용
+        private String code; // 인증번호 (2번때 요청시 사용)
+
+        public void validate() {
+            if (email == null || email.trim().isEmpty()) {
+                throw new Exception400("이메일을 입력해주세요");
+            }
+            if (!email.contains("@")){
+                throw new Exception400("올바른 이메일 형식이 아닙니다");
+            }
+        }
+        //인증번호 확인 API에서 추가로 호출할 예정
+        public void validateCode() {
+            validate();
+            if (code== null || code.trim().isEmpty()) {
+                throw new Exception400("인증번호를 입력해주세요");
+            }
+        }
+    }
+
+
     //회원 정보 수정 DTO
     @Data
     public static class UpdateDto {
