@@ -46,8 +46,8 @@ public class UserServiceTest {
         // save 호출시 넘겨받은 엔티티를 그대로 반환하도록 설정 (실제 DB 저장을 흉내)
         given(userJpaRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        // when : 회원가입 실행
-        UserResponse.JoinDto result = userService.join(joinDto);
+        // when : 회원가입 실행 (인증된 이메일이 가입 이메일과 일치)
+        UserResponse.JoinDto result = userService.join(joinDto, "tens@email.com");
 
         // then : 응답 DTO 검증
         Assertions.assertThat(result.getUsername()).isEqualTo("tens");
@@ -77,7 +77,7 @@ public class UserServiceTest {
         given(userJpaRepository.findByUsername("tens")).willReturn(Optional.of(existingUser));
 
         // when & then : 400 예외, 저장은 실행되지 않음
-        Assertions.assertThatThrownBy(() -> userService.join(joinDto))
+        Assertions.assertThatThrownBy(() -> userService.join(joinDto, "tens@email.com"))
                 .isInstanceOf(Exception400.class)
                 .hasMessage("이미 존재하는 사용자명 입니다");
 
@@ -102,9 +102,9 @@ public class UserServiceTest {
         given(userJpaRepository.findByEmail("tens@email.com")).willReturn(Optional.of(existingUser));
 
         // when & then : 400 예외, 저장은 실행되지 않음
-        Assertions.assertThatThrownBy(() -> userService.join(joinDto))
+        Assertions.assertThatThrownBy(() -> userService.join(joinDto, "tens@email.com"))
                 .isInstanceOf(Exception400.class)
-                .hasMessage("이미 존재하는 이메일명 입니다");
+                .hasMessage("이미 등록된 이메일입니다");
 
         verify(userJpaRepository, never()).save(any(User.class));
     }

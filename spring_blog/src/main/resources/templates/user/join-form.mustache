@@ -5,7 +5,8 @@
         <div class="card-header"><b>회원가입</b></div>
         <div class="card-body">
             {{! 파일을 보낼려면 enctype 를 반드시 multpart/form-data 이여야함}}
-            <form action="/join" method="post" enctype="multipart/form-data">
+            {{! form 태그 자체에 onsubmit 제출 직전에 인증 여부를 한번더 처리 하기위해서 설정함}}
+            <form action="/join" method="post" enctype="multipart/form-data" onsubmit="return checkVerify()">
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="사용자명" name="username">
                 </div>
@@ -36,7 +37,7 @@
                            name="profileImage" accept="image/**">
                     <small>JPG, PNG, GIF, WEBP 파일만 올릴 수 있습니다(선택사항)</small>
                 </div>
-                <button class="btn btn-primary form-control">회원가입</button>
+                <button class="btn btn-primary form-control" id="save-btn" >회원가입</button>
             </form>
         </div>
     </div>
@@ -106,12 +107,10 @@
                     msgBox.className = "form-text text-success";
                     //인증한 이메일을 화면단에서 바꾸지 못하게 잠금 설정
                     document.querySelector("#email").readOnly = true;
-                    document.querySelector("#code").readOnly = true;
-                    document.querySelector("#send-btn").disabled = true;
-                    document.querySelector("#send-code-btn").disabled = true;
-
-
-
+                    document.querySelector("#send-btn").style.display = "none";
+                    document.querySelector("#code").style.display = "none";
+                    document.querySelector("#code").value = "";
+                    document.querySelector("#send-code-btn").style.display = "none";
 
                 } else {
                     msgBox.innerText = result.message;
@@ -120,9 +119,17 @@
             }catch (e) {
                 alert("서버와 통신하지 못했습니다")
             }
-
-
         }
+
+        //회원가입 제출직전 확인 (false를 반환하면 제출이 취소됨)
+    function checkVerify() {
+        if (!isEmailVerified) {
+            alert("이메일 인증을 먼저 완료해주세요")
+            return false;
+        }
+        return true;
+    }
+
 
 
 </script>

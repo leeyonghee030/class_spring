@@ -77,6 +77,7 @@ public class UserRequest {
         private String email;
         private MultipartFile profileImage; //프로필 이미지
 
+
         //회원가입시 데이터 검증 메서드
         public void validate() {
             if (username == null || username.trim().isEmpty()) {

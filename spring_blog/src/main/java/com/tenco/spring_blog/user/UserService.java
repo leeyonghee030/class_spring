@@ -40,8 +40,14 @@ public class UserService {
      * @return 회원가입된 정보
      */
     @Transactional //쓰기 작업으로
-    public UserResponse.JoinDto join(UserRequest.JoinDto joinDto) {
+    public UserResponse.JoinDto join(UserRequest.JoinDto joinDto, String email) {
         log.info("회원가입 서비스 시작 -사용자 명: {}", joinDto.getUsername());
+
+        //이메일 인증 여부 확인 추가
+        //인증 하지 않았거나, 인증한 이메일과 가입폼의 이메일이 다르면 거부
+        if (email == null || !email.equals(joinDto.getEmail())){
+            throw new Exception400("이메일 인증은 먼저해주세요");
+        }
 
         // 값이 있다면 에러가 실행된다 (중복이면 에러를 던지기위해 .ifPresent)
         userJpaRepository.findByUsername(joinDto.getUsername())
@@ -51,10 +57,8 @@ public class UserService {
                 });
 
         // 두번쨰 이메일 중복 검사
-        userJpaRepository.findByEmail(joinDto.getEmail()).ifPresent(user -> {
-            log.warn("회원가입 실패- 중복된 이메일명: {}", joinDto.getEmail());
-            throw new Exception400("이미 존재하는 이메일명 입니다");
-        });
+        checkEmailAvailable(joinDto.getEmail());
+
         //3. 프로필 이미지 저장  새롭게 생긴 파일 이름이 리턴됨
         String profileImage = FileUtil.saveImage(joinDto.getProfileImage());
 

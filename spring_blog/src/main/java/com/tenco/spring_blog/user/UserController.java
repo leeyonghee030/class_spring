@@ -1,5 +1,6 @@
 package com.tenco.spring_blog.user;
 
+import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.error.UnauthorizedException;
 import com.tenco.spring_blog._core.util.Define;
 import jakarta.annotation.PostConstruct;
@@ -79,10 +80,14 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public String join(UserRequest.JoinDto dto, Model model) {
+    public String join(UserRequest.JoinDto dto, Model model, HttpSession session) {
 
         dto.validate();
-        userService.join(dto);
+
+        String email = (String) session.getAttribute(Define.VERIFIED_EMAIL);
+
+        userService.join(dto,email); // 검증은 서비스 내부에서 처리
+        session.removeAttribute(Define.VERIFIED_EMAIL);
 
         return "redirect:/login";
 
