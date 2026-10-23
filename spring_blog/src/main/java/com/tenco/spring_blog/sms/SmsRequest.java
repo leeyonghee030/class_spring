@@ -18,7 +18,7 @@ public class SmsRequest {
             if (phone == null || phone.trim().isEmpty()) {
                 throw new Exception400("휴대폰 번호를 입력해주세요");
             }
-            if (phone.length() != 11){
+            if (!phone.matches("^01[0-9]\\d{7,8}$")){
                 throw new Exception400("휴대폰 번호를 입력해주세요(ex01012341234)");
             }
         }
