@@ -20,6 +20,7 @@ repositories {
 
 
 dependencies {
+    implementation 'com.solapi:sdk:1.2.0'
     // 메일 발송 (JavaMailSender)
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     // 비밀번호 해싱 (BCryptPasswordEncoder)

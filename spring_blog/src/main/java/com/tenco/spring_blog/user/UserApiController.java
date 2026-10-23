@@ -2,6 +2,8 @@ package com.tenco.spring_blog.user;
 
 import com.tenco.spring_blog._core.error.Exception400;
 import com.tenco.spring_blog._core.error.Exception500;
+import com.tenco.spring_blog._core.error.UnauthorizedException;
+import com.tenco.spring_blog._core.util.Define;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +35,8 @@ public class UserApiController {
         // SMTP를 사용해서 인증 번호 발송 (구글 메일 서버 -> 사용자 이메일 수신함 (인증번호))
         mailService.sendVerificationCode(emailCheckDto.getEmail(),session);
 
-        return ResponseEntity.ok(Map.of("message", "인증 되었습니다"));
+        return ResponseEntity.ok(Map.of("message", "인증번호가 발송되었습니다 "
+                + Define.CODE_EXPIRE_MINUTES+ "분 안에 입력하세요"));
     }
 
     // 요청바디 {"email" : "a@naver.com", "code" : "123456"}
@@ -54,6 +57,12 @@ public class UserApiController {
     public ResponseEntity<?> exception400(Exception400 e) {
         log.warn("API 400 - {}", e.getMessage());
         return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<?> exceptionUnauthorized(UnauthorizedException e) {
+        log.warn("API 401 - {}", e.getMessage());
+        return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(Exception500.class)
