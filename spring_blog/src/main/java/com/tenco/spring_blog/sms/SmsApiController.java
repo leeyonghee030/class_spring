@@ -25,10 +25,9 @@ public class SmsApiController {
     @PostMapping("/api/sms/send")
     public ResponseEntity<?> smsSendCode(@RequestBody SmsRequest.phoneCheckDto phoneCheckDto, HttpSession session) {
         phoneCheckDto.validate();
-        if (!smsService.checkSendTime(phoneCheckDto.getPhone(), session)){
+        if (!smsService.sendVerificationCode(phoneCheckDto.getPhone(), session)) {
             return ResponseEntity.badRequest().body(Map.of("message", Define.SMS_EXPIRE_MINUTES+ "분 후 다시 발송 가능합니다"));
         }
-        smsService.sendVerificationCode(phoneCheckDto.getPhone(),session);
 
         return ResponseEntity.ok(Map.of("message", "인증번호가 발송되었습니다 "
                 + Define.CODE_EXPIRE_MINUTES+ "분 안에 입력하세요"));

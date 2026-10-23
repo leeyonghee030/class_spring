@@ -1,17 +1,12 @@
 package com.tenco.spring_blog.sms;
 
 
-import com.solapi.sdk.SolapiClient;
-import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
-import com.solapi.sdk.message.model.Message;
-import com.solapi.sdk.message.service.DefaultMessageService;
 import com.tenco.spring_blog._core.error.Exception400;
-import com.tenco.spring_blog._core.error.Exception500;
 import com.tenco.spring_blog._core.util.Define;
 import com.tenco.spring_blog._core.util.MailUtil;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -19,17 +14,12 @@ import java.time.LocalDateTime;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SmsService {
 
-    private final String solapiPhone;
-    private final DefaultMessageService messageService;
 
-    public SmsService(@Value("${solapi.api-key}") String solapiClientId,
-                       @Value("${solapi.api-secret}") String solapiClientSecret,
-                       @Value("${solapi.sender}") String solapiPhone) {
-        this.solapiPhone = solapiPhone;
-        this.messageService = SolapiClient.INSTANCE.createInstance(solapiClientId, solapiClientSecret);
-    }
+    private final SolapiClient solapiClient;
+
 
 
 
@@ -43,24 +33,16 @@ public class SmsService {
     }
 
     //1. 인증번호 발송
-    public void sendVerificationCode(String phone, HttpSession session) {
+    public  boolean sendVerificationCode(String phone, HttpSession session) {
         //1-1 6자리 인증번호 생성
         String code = MailUtil.generateCode();
-        Message message = new Message();
-        message.setFrom(solapiPhone);
-        message.setTo(phone);
-        message.setText("[스프링블로그 이용희]\n인증번호 " + code+"\n" + "(" + Define.CODE_EXPIRE_MINUTES + "분 안에 입력)");
-        try {
-            messageService.send(message);
-        } catch (SolapiMessageNotReceivedException exception) {
-            log.error("SMS 발송 실패 - 수신번호: {}, 실패목록: {}", phone, exception.getFailedMessageList());
-            throw new Exception500("문자 작성 중 오류가 발생했습니다");
-        } catch (Exception exception) {
-            log.error("SMS 발송 실패 - 수신번호: {}, {}", phone, exception.getMessage());
-            throw new Exception500("문자 작성 중 오류가 발생했습니다");
+        if (!checkSendTime(phone, session)){
+            return false;
         }
+        solapiClient.sendVerificationCode(phone,code);
         session.setAttribute(Define.SMS_CODE_PREFIX + phone,
                 new SmsCode(code,LocalDateTime.now()));
+        return true;
     }
 
     public boolean verifyCode(String phone, String code, HttpSession session) {
