@@ -6,9 +6,25 @@ import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.text.StyledEditorKit;
+import java.security.SecureRandom;
 
 
 public class UserRequest {
+
+    //테스트용 포인트 충전 DTO
+    @Data
+    public static class PointChargeDto {
+        private Integer amount;
+
+        public void validate() {
+            if (amount == null || amount <=0) {
+                throw new Exception400("충전할 포인트는 0보다 커야합니다");
+            }
+            if (amount > 100000) {
+                throw new Exception400("한번에 100,000 포인트까지 충전할 수 있습니다");
+            }
+        }
+    }
 
     //이메일 인증 요청 DTO (발송 롹인 API에서 함께사용)
     @Data

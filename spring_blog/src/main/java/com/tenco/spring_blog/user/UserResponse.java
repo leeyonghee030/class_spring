@@ -16,6 +16,7 @@ public class UserResponse {
         private String email;
         private String profileImage;
         private String createdAt; // 포맷된 가입일
+        private int point;
 
         public DetailDto(User user) {
             this.id = user.getId();
@@ -23,6 +24,7 @@ public class UserResponse {
             this.email = user.getEmail();
             this.profileImage = user.getProfilePath();
             this.createdAt = MyDateUtil.timestampFormat(user.getCreatedAt());
+            this.point = user.getPoint();
         }
     }
 

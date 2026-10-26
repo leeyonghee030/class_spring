@@ -212,4 +212,11 @@ public class UserService {
                     throw new Exception400("이미 등록된 이메일입니다");
                 });
     }
+
+    @Transactional
+    public int chargePoint(Long userId, Integer amount) {
+        User user = findById(userId);
+        user.chargePoint(amount);
+        return user.getPoint();
+    }
 }

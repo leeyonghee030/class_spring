@@ -2,9 +2,11 @@ package com.tenco.spring_blog.user;
 
 import com.tenco.spring_blog._core.error.Exception400;
 import com.tenco.spring_blog._core.error.Exception500;
+import com.tenco.spring_blog._core.util.Define;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,9 @@ public class UserApiController {
 
     private final UserService userService;
     private final MailService mailService;
+
+
+
 
     //Post /api/email/send
     //요청바디 : {"email": "a@naver.com"}
@@ -45,6 +50,28 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "인증번호가 일치하지 않습니다"));
         }
         return ResponseEntity.ok().body(Map.of("message", "인증되었습니다"));
+    }
+
+
+    //post /api/point/charge
+    //요청 바디 : {"amount" : 1000}
+    @PostMapping("/api/point/charge")
+    public ResponseEntity<?> chargePoint(@RequestBody UserRequest.PointChargeDto pointChargeDto,
+                                         HttpSession session) {
+        //1. 인증검사
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        if (sessionUserDto == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "로그인이 필요합니다"));
+        }
+        //2.유효성 검사
+        pointChargeDto.validate();
+        //3. 서비스단에 위임
+        int point = userService.chargePoint(sessionUserDto.getId(), pointChargeDto.getAmount());
+
+        //응답 처리
+        return ResponseEntity.ok(Map.of("message", "포인트가 충전 되었습니다", "point", point));
+
     }
 
     //이 컨트롤러에서 난 예외만 처리 (화면용 컨트롤러는 GlobalExceptionHandler가 계속 처리)

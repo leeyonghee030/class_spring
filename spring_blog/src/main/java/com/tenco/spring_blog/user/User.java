@@ -1,6 +1,8 @@
 package com.tenco.spring_blog.user;
 
 
+import com.tenco.spring_blog._core.error.Exception400;
+import com.tenco.spring_blog._core.error.NotEnoughPointException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -52,6 +54,10 @@ public class User {
     @ColumnDefault("'LOCAL'") // 문자열이므로 안에 작은 따음표 필수
     private OauthProvider provider;
 
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private Integer point;
+
     //id 와 createdAt은 자동으로 채워지므로 빌더에서 제외
     @Builder
     public User(String username, String password, String email, String profileImage, OauthProvider provider) {
@@ -62,12 +68,12 @@ public class User {
         this.provider = (provider == null) ? OauthProvider.LOCAL : provider;
     }
 
-    public void update(String password){
+    public void update(String password) {
         this.password = password;
     }
 
     //프로필 이미지 변경 (null이면 삭제) -트렌잭샨 안에서 호출하면 더티 체킹 발생됨
-    public void updateProfileImage(String profileImage){
+    public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
 
@@ -97,14 +103,32 @@ public class User {
     }
 
     public String getProfilePath() {
-        if (this.profileImage == null){
+        if (this.profileImage == null) {
             return null;
         }
-        if(this.profileImage.startsWith("http")){
+        if (this.profileImage.startsWith("http")) {
             return this.profileImage;
         }
-        return "/images/"+this.profileImage;
+        return "/images/" + this.profileImage;
     }
 
+    // 포인트 관련 편의 메서드 추가
+    public void chargePoint(int amount) {
+        if (amount <= 0) {
+            throw new Exception400("충전할 포인트는 0보다 커야합니다");
+        }
+        this.point += amount;
+    }
 
+    public void deductPoint(int amount) {
+        if (amount <= 0) {
+            throw new Exception400("차감할 포인트는 0보다 커야합니다");
+        }
+        if (this.point < amount) {
+            throw new NotEnoughPointException("마이 페이지에서 충전 후 다시 시도해주세요");
+        }
+        this.point -= amount;
+    }
 }
+
+
