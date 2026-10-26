@@ -1,24 +1,24 @@
 package com.tenco.spring_blog.board;
 
 
+import com.tenco.spring_blog._core.error.Exception400;
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.error.Exception404;
+import com.tenco.spring_blog._core.util.Define;
+import com.tenco.spring_blog.purchase.PurchaseJpaRepository;
 import com.tenco.spring_blog.reply.ReplyJpaRepository;
-import com.tenco.spring_blog.reply.ReplyService;
 import com.tenco.spring_blog.user.SessionUserDto;
 import com.tenco.spring_blog.user.User;
 import com.tenco.spring_blog.user.UserJpaRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /*
 Board 관련 비즈니스 로직을 처리하는 Service 계층
@@ -33,8 +33,9 @@ Board 관련 비즈니스 로직을 처리하는 Service 계층
 public class BoardService {
 
     private final BoardJpaRepository boardJpaRepository;
-    private  final UserJpaRepository userJpaRepository;
+    private final UserJpaRepository userJpaRepository;
     private final ReplyJpaRepository replyJpaRepository;
+    private final PurchaseJpaRepository purchaseJpaRepository;
 
     /**
      * 게시글 저장
@@ -47,7 +48,7 @@ public class BoardService {
     // 데이터 수정이 필요하므로 트랜젝션 읽기 전용 설정을 해제하고 쓰기 가능한 트랜젝션으로 실행돰
     public Board save(BoardRequest.SaveDto saveDto, SessionUserDto sessionUser) {
         log.info("게시글 저장 시작 -제목 : {}, 작성자 : {}", saveDto.getTitle(), sessionUser.getUsername());
-        User user =  userJpaRepository.getReferenceById(sessionUser.getId());
+        User user = userJpaRepository.getReferenceById(sessionUser.getId());
         Board savedBoard = boardJpaRepository.save(saveDto.toEntity(user));
 
         log.info("게시글 저장 완료 -ID : {}, 제목 : {}", savedBoard.getId(), savedBoard.getTitle());
@@ -62,7 +63,7 @@ public class BoardService {
      * @param id 게시글 PK
      * @return 게시글 정보 (작성자 정보 포함)
      */
-    public BoardResponse.DetailDto findById(Long id) {
+    public BoardResponse.DetailDto findById(Long id, Long sessionUserId) {
         log.info("상세 게시글 조회 시작 -ID : {}", id);
 //        Board board = boardJpaRepository.findById(id) //이 메서드 대신 Join fetch를 사용함
         Board board = boardJpaRepository.findByIdJoinUser(id) //직접 정의한 쿼리
@@ -70,7 +71,14 @@ public class BoardService {
                     log.warn("게시글 조회 실패  - ID : {}", id);
                     return new Exception404("게시글을 찾을수 없습니다");
                 });
-        BoardResponse.DetailDto detailDto = new BoardResponse.DetailDto(board);
+
+        //작성자인지
+        boolean owner = sessionUserId != null && board.isOwner(sessionUserId);
+
+        // 구매자인지
+        boolean purchased =  sessionUserId != null && purchaseJpaRepository.existsByUserIdAndBoardId(sessionUserId,board.getId());
+
+        BoardResponse.DetailDto detailDto = new BoardResponse.DetailDto(board, owner, purchased);
 
         // 서비스단에서 지연로딩을 하기위해 미리 호출한다면 board 엔티티에 User엔티티가 셋팅이 되어
         //controller에 넘어간다
@@ -86,10 +94,10 @@ public class BoardService {
 
         //1. 1부터 시작하는 번호를 0부터로 변환 (0이하가 들어와도 0으로 보장)
 //        int pageIndex = (page <= 0) ? 0 : page -1;
-        int pageIndex = Math.max(0,page-1);
+        int pageIndex = Math.max(0, page - 1);
 
         //2. 페이지 크기는  1 ~50 으로 제한 size = 10000같은 요청 방어
-        int validSize = Math.clamp(size,1,50);
+        int validSize = Math.clamp(size, 1, 50);
 
 
         // 최신 글이 먼저 오도록 id 내림 차순 정렬 (주문서 생성)
@@ -99,10 +107,10 @@ public class BoardService {
 
         //페이징 처리가 된 게시글 목록 조회 요청 (주문 결과 Page)
         Page<Board> boardPage;
-        if (keyword == null || keyword.isBlank()){
+        if (keyword == null || keyword.isBlank()) {
             boardPage = boardJpaRepository.findAllJoinUser(pageable);
         } else {
-            boardPage = boardJpaRepository.findAllKeywordJoinUser(pageable,keyword);
+            boardPage = boardJpaRepository.findAllKeywordJoinUser(pageable, keyword);
         }
 
 
@@ -183,7 +191,14 @@ public class BoardService {
             throw new Exception403("본인이 작성한 게시글만 삭제 가능합니다");
         }
 
+
+        //구매자가 있는 게시글은 삭제 불가 (구매자의 구매 내역과 포인트 보호
+        if (purchaseJpaRepository.countByBoardId(id)> 0){
+            log.warn("구매 내역이있어 게시글 삭제불가 - 게시글 ID : {}",id);
+            throw new Exception400("구매한 사용자가 있는 게시글은 삭제할 수 없습니다");
+        }
         replyJpaRepository.deleteByBoardId(id);
+        purchaseJpaRepository.deleteByBoardId(id);
         boardJpaRepository.deleteById(id);
         log.info("게시글 삭제 완료");
     }

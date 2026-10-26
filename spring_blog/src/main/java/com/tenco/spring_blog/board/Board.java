@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -19,6 +20,10 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Board {
+
+    //유로 게시글 가격
+    public  static final int PREMIUM_PRICE = 500;
+
     @Id // 이필그가 기본기 임을 나타냄
     // 기본키 값을 자동으로 생성( IDENTITY 전략 -> DB에 기본 설정 따른다 ) AUTO_INCREMENT 기능사용
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +32,13 @@ public class Board {
     //별도 어노테이션이 없으면 필드명이 컬럼명이 됨
     private  String title;
     private String content;
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean premium;
+
+
+
+
 //    private String username;
     // N : 1 , 1 : N , N : M
     //LAZY 전략(빈 클래스 가지고오고 .참조시 값을 가져옴), EAGER 전략(한번에 조인해서 가져옴)
@@ -41,27 +53,22 @@ public class Board {
     private Timestamp createdAt; // createdAt 컬럼 (스프링이 기본값인 스네이크 케이스로 자동 변환해줌 db에서 )
 
 
+
     //비즈니스 로직을 위한 생성자 설계
     // id 와 createAt은 JPA가 자동으로 설정 하므로 매개변수에서 제외
     @Builder
-    public Board(String title, String content, User user) {
+    public Board(String title, String content, User user, boolean premium) {
         this.title = title;
         this.content = content;
         this.user = user;
+        this.premium = premium;
     }
 
-    // 자신의 상태값을 변경하는 메서스 추가 (영속성 엔티티를 수정하는 메서드)
     public void update(BoardRequest.UpdateDto updateDto) {
-        //비즈니스 규칙검증
         updateDto.validate();
-        // 영속 상태에 있는 엔티티의 필드 값을 여기서 변경
         this.title = updateDto.getTitle();
         this.content = updateDto.getContent();
-        //변경 감지 (Dirty Checking) 동작 과정
-        //1. 영속성 컨텍스트가 엔티티 최초 상태를 스냅샷으로 따로 보관
-        //2. 필드 값 변경시 현재 시점 상태와 스냅샷 비교
-        //3. 트랜잭션 커밋 시점에 변경된 필드만 update 쿼리를 자동 생성
-        //4. UPDATE board_tb SET title = ?, content =? where id= ?
+        this.premium = updateDto.isPremium();
     }
     //게시글 수정/삭제 권한 체크용 편의메서드
     public boolean isOwner(Long userId) {

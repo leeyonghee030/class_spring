@@ -2,6 +2,7 @@ package com.tenco.spring_blog.board;
 
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.util.Define;
+import com.tenco.spring_blog.purchase.PurchaseService;
 import com.tenco.spring_blog.reply.ReplyResponseDto;
 import com.tenco.spring_blog.reply.ReplyService;
 import com.tenco.spring_blog.user.SessionUserDto;
@@ -27,6 +28,18 @@ public class BoardController {
     //
     private final BoardService boardService;
     private final ReplyService replyService;
+    private final PurchaseService purchaseService;
+            //유료 게시글 구먀 요청  URL만들기
+
+    // board/{}
+    @PostMapping("/board/{id}/purchase")
+    public String purchase(@PathVariable(name = "id") Long id,HttpSession session ){
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        purchaseService.purchase(id,sessionUserDto.getId());
+        //구매 완료 했다면  상세보기 로 이동 처리 (이제 본문이 나와야함 )
+        return "redirect:/board/"+id;
+    }
+
 
     // GET http://localhost:8080/board/list
     // http://localhost:8080/
@@ -51,13 +64,19 @@ public class BoardController {
     @GetMapping("/board/{id}")
     public String detail(@PathVariable(name = "id") Long id, Model model, HttpSession session) {
 
-        BoardResponse.DetailDto detailDto = boardService.findById(id);
-        model.addAttribute("board", detailDto);
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
-        boolean isOwner = sessionUserDto != null && detailDto.getUserId().equals(sessionUserDto.getId());
+
         Long sessionUserId = (sessionUserDto == null) ? null : sessionUserDto.getId();
+
+        BoardResponse.DetailDto detailDto = boardService.findById(id,sessionUserId);
+
+
+        boolean isOwner = sessionUserDto != null && detailDto.getUserId().equals(sessionUserDto.getId());
+
+
         List<ReplyResponseDto.ListDto> replyList = replyService.findAllByBoardId(id, sessionUserId, detailDto.getUserId());
 
+        model.addAttribute("board", detailDto);
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("replyList", replyList);
 

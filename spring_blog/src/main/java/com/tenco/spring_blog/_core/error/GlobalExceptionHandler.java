@@ -143,6 +143,27 @@ public class GlobalExceptionHandler {
         return "err/500";
     }
 
+
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)// 상태코드 403 지정 (없으면 200)
+    @ResponseBody
+    @ExceptionHandler(NotEnoughPointException.class)
+    public String exNotEnoughPointException(NotEnoughPointException e, HttpServletRequest request, Model model) {
+        log.warn("=== 포인트 부족 error ===");
+        log.warn("요청 URL : {}", request.getRequestURI());
+        log.warn("권한 오류: {}", e.getMessage());
+
+        String msg = e.getMessage().replace("`","'"); //백틱이 메시지에 섞여 템플릿 백틱과 충돌하는 것 방지
+
+        String msg2 = """
+                <script>
+                    alert(`%s`);
+                    location.href ='/user/detail';
+                </script>
+                """.formatted(msg);
+        return msg2;
+    }
+
     //오류 화면에서도 헤더의 로그인 메뉴가 보이도록 sessionUserDto 를 Model에 추가
     private void addSessionUserDto(HttpServletRequest request, Model model) {
         HttpSession session = request.getSession(false);
@@ -151,6 +172,8 @@ public class GlobalExceptionHandler {
         }
 
     }
+
+
 
 
 

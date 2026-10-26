@@ -10,6 +10,7 @@ public class BoardRequest {
     public static  class SaveDto {
         private String title;
         private String content;
+        private boolean premium; //유료 게시글 여부 체크안하면 false
 
         public void validate () {
             if (title == null || title.trim().isEmpty()) {
@@ -23,8 +24,9 @@ public class BoardRequest {
 
         public Board toEntity(User user) {
             Board board = Board.builder()
-                    .title(title)
-                    .content(content)
+                    .title(this.title)
+                    .content(this.content)
+                    .premium(this.premium)
                     .user(user)
                     .build();
 
@@ -37,6 +39,8 @@ public class BoardRequest {
     public static class UpdateDto {
         private String title;
         private String content;
+        private boolean premium; //유료 게시글 여부 체크안하면 false
+
 
         //검증 메서드 (선택사항)
         public void validate () {
