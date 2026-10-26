@@ -150,3 +150,6 @@ $RECYCLE.BIN/
 # Gradle / 빌드 산출물 (매 빌드마다 바뀌는 생성물 — 추적하면 안 됨)
 .gradle/
 build/
+
+# 개인 학습 노트 (팀/원격 저장소에 안 올림)
+STUDY_NOTES.md
