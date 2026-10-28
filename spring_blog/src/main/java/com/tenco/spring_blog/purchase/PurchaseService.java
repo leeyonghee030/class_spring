@@ -7,12 +7,15 @@ import com.tenco.spring_blog.board.BoardJpaRepository;
 import com.tenco.spring_blog.board.BoardService;
 import com.tenco.spring_blog.user.User;
 import com.tenco.spring_blog.user.UserJpaRepository;
+import com.tenco.spring_blog.user.UserResponse;
 import com.tenco.spring_blog.user.UserService;
 import jakarta.persistence.Id;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -58,7 +61,15 @@ public class PurchaseService {
                 .build();
 
         purchaseJpaRepository.save(purchase);
+    }
 
+    //로그인 사용자의 유효 게시글 구매 내역 조회기능
+    public List<PurchaseResponse.ListDto> findAllByUserId(Long userId){
+        List<Purchase> purchases = purchaseJpaRepository.findAllByUserIdJoinBoard(userId);
+
+        return purchases.stream()
+                .map(PurchaseResponse.ListDto :: new)
+                .toList();
     }
 
 

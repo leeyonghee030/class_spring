@@ -3,6 +3,8 @@ package com.tenco.spring_blog.user;
 import com.tenco.spring_blog._core.error.Exception403;
 import com.tenco.spring_blog._core.error.UnauthorizedException;
 import com.tenco.spring_blog._core.util.Define;
+import com.tenco.spring_blog.purchase.PurchaseResponse;
+import com.tenco.spring_blog.purchase.PurchaseService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +32,20 @@ public class UserController {
 
     private final UserService userService;
     private  final  KakaoLoginService kakaoLoginService;
+    private  final PurchaseService purchaseService;
 
 
+    // GET http://localhost:8080/user/purchase/list (구매 내역 화면)
+    @GetMapping("/user/purchase/list")
+    public String purchaseList(HttpSession session, Model model) {
+
+        //1. 조회
+        SessionUserDto userDto = (SessionUserDto) session.getAttribute(Define.SESSION_USER);
+        //2. 응답 dto 파일에보내기
+        List<PurchaseResponse.ListDto> purchaseList = purchaseService.findAllByUserId(userDto.getId());
+        model.addAttribute("purchaseList",purchaseList);
+        return "/user/purchase-list";
+    }
 
 
     //포인트 충전
