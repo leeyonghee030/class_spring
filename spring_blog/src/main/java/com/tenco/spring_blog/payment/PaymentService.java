@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -98,4 +99,13 @@ public class PaymentService {
         return new PaymentResponse.CompleteDto(payment.getAmount(), user.getPoint());
 
     }
+
+
+    public List<PaymentResponse.ListDto> findAllByUserId(Long userId){
+        List<Payment> payments = paymentJpaRepository.findAllByUserIdAndStats(userId, PaymentStatus.PAID);
+        //응답 Dto 설계후 리턴
+        return payments.stream()
+                .map(PaymentResponse.ListDto::new).toList();
+    }
+
 }
