@@ -15,17 +15,23 @@ public class PaymentResponse {
         private String paymentId;
         private String pgTxId;
         private String amount;
+        private String amountFormat;
         private String statusDisplay;
         private String paidAt;
+        private boolean cancelled; // 환불 완료 결제인지 확인 > 버튼 색상
+        private boolean refundable; // 환불 요청 버튼 표시
 
         @Builder
-        public ListDto(Payment payment) {
+        public ListDto(Payment payment, boolean refundable) {
             this.id = payment.getId();
             this.paymentId = payment.getPaymentId();
             this.pgTxId = payment.getPgTxId();
             this.amount = String.format("%,d", payment.getAmount());
+            this.amountFormat = payment.getAmoutFormat();
             this.statusDisplay = payment.getStatus().getDisplayName(); //결제 완료 대기 취소등
             this.paidAt = MyDateUtil.timestampFormat(payment.getCreatedAt());
+            this.cancelled = payment.getStatus() == PaymentStatus.CANCELLED;
+            this.refundable = refundable;
         }
     }
     @Data

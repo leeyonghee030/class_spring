@@ -1,5 +1,6 @@
 package com.tenco.spring_blog.payment;
 
+import com.tenco.spring_blog._core.util.MyNumberUtil;
 import com.tenco.spring_blog.user.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -67,6 +68,10 @@ public class Payment {
     public void markPaid(String pgTxId) {
         this.pgTxId = pgTxId; //결제 상태를 완료로 변경
         this.status = PaymentStatus.PAID; // null값 허용
+    }
+
+    public String getAmoutFormat() {
+        return MyNumberUtil.numberFormat(amount);
     }
 
 

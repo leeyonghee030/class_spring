@@ -3,6 +3,7 @@ package com.tenco.spring_blog.payment;
 
 import com.tenco.spring_blog._core.error.Exception400;
 import com.tenco.spring_blog._core.error.Exception403;
+import com.tenco.spring_blog.refund.RefundRepository;
 import com.tenco.spring_blog.user.User;
 import com.tenco.spring_blog.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ public class PaymentService {
 
     private final PaymentJpaRepository paymentJpaRepository;
     private final UserJpaRepository userJpaRepository;
+    private final RefundRepository refundRepository;
 
     /**
      * 1단계 결제건 생성
@@ -102,10 +105,23 @@ public class PaymentService {
 
 
     public List<PaymentResponse.ListDto> findAllByUserId(Long userId){
-        List<Payment> payments = paymentJpaRepository.findAllByUserIdAndStats(userId, PaymentStatus.PAID);
+        // 1. 결제 완료 상태면 환불 가능
+        List<Payment> payments = paymentJpaRepository
+                .findAllByUserIdAndStatusList(userId, List.of(PaymentStatus.PAID, PaymentStatus.CANCELLED));
+
+        // 내가 요청한 PK 정보 리스트
+        List<Long> requestedPaymentPkList = refundRepository.findPaymentPkListByUserId(userId);
+
         //응답 Dto 설계후 리턴
-        return payments.stream()
-                .map(PaymentResponse.ListDto::new).toList();
+        List<PaymentResponse.ListDto> resultList = new ArrayList<>();
+        for (Payment payment : payments) {
+            boolean refundable = false;
+            if (payment.isPaid() && !requestedPaymentPkList.contains(payment.getId())) {
+                refundable = true;
+            }
+            resultList.add(new PaymentResponse.ListDto(payment, refundable));
+        }
+        return resultList;
     }
 
 }

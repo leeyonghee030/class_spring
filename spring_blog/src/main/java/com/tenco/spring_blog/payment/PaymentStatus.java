@@ -2,7 +2,8 @@ package com.tenco.spring_blog.payment;
 
 public enum PaymentStatus {
     READY("결제 대기"), //결제예정
-    PAID("결제 완료"); //결제확인및 포인트 지급완료
+    PAID("결제 완료"), //결제확인및 포인트 지급완료
+    CANCELLED("결제 취소");
     //반드시 세미콜론을 해주어야 한다
 
 

@@ -21,11 +21,13 @@ public interface PaymentJpaRepository extends JpaRepository<Payment,Long> {
     boolean existsByPaymentId(@Param("paymentId") String paymentId);
 
 
+    // 결제 내역 조회 (로그인 사용자)
     @Query("""
-                select p from Payment p 
-                where p.user.id = :userId 
-                and p.status = :status
-                order by p.id desc
-            """)
-    List<Payment> findAllByUserIdAndStats(@Param("userId") Long userId, @Param("status") PaymentStatus status);
+                SELECT p FROM Payment p 
+                WHERE p.user.id = :userId
+                AND p.status IN :statusList 
+                ORDER BY p.id DESC 
+        """)
+    List<Payment> findAllByUserIdAndStatusList(@Param("userId") Long userId,
+                                               @Param("statusList") List<PaymentStatus> statusList );
 }
