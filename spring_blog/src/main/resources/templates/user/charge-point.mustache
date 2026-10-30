@@ -102,7 +102,7 @@
             const prepare = await prepareRes.json();
             if (!prepareRes.ok) {
                 alert("잘못된 요청입니다");
-                return;
+                throw new Error(prepare.massge);
             }
 
             //2단계 포스트원 결제요청 호춯
@@ -134,8 +134,7 @@
 
             const result = await completeRes.json();
             if (!completeRes.ok){
-                alert("포인트 충전에 실패했습니다");
-                return;
+                throw new Error(result.message);
             }
             //안내 문구 ...alert
             alert("충전이 완료 되었습니다 " +
@@ -143,7 +142,7 @@
                     "\n현재 보유 포인트 : " + result.currentPoint);
             location.href = "/user/detail";
         } catch (e) {
-            alert(e.message+ " : 서버와 통신 하지 못햇습니다" )
+            alert("서버와 통신 하지 못햇습니다");
         } finally {
             chargeBtn.disabled = false;
         }

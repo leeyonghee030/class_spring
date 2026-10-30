@@ -74,6 +74,9 @@ public class Payment {
         return MyNumberUtil.numberFormat(amount);
     }
 
+    public void markCancelled() {
+        this.status = PaymentStatus.CANCELLED;
+    }
 
 
 }

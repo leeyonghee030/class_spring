@@ -1,8 +1,10 @@
 package com.tenco.spring_blog.refund;
 
 import com.tenco.spring_blog._core.util.MyDateUtil;
+import jdk.jfr.DataAmount;
 import lombok.Builder;
 import lombok.Data;
+import tools.jackson.databind.util.NativeImageUtil;
 
 public class RefundResponse {
 
@@ -37,6 +39,44 @@ public class RefundResponse {
             this.pending = refund.getStatus() == RefundStatus.PENDING;
             this.approved = refund.getStatus() == RefundStatus.APPROVED;
             this.rejected = refund.getStatus() == RefundStatus.REJECTED;
+        }
+    }
+    @Data
+    public static class AdminListDto {
+        private Long id;
+        private String username;
+        private String paymentId;
+        private int amount;
+        private String reason; //신청자 환불사유
+        private String statusDisplay; // 대기중 거절됨 승인됨
+        private String requestedAt; // 환불신청일
+        private boolean pending; //대기중여부
+        private boolean approved; //승인됨 여부 뱃지색
+
+        public AdminListDto(Refund refund) {
+            this.id = refund.getId();
+            this.username = refund.getUser().getUsername();
+            this.paymentId = refund.getPayment().getPaymentId();
+            this.amount = refund.getPayment().getAmount();
+            this.reason = refund.getReason();
+            this.statusDisplay = refund.getStatus().getDisplayName();
+            if (refund.getCreatedAt() != null){
+                this.requestedAt = MyDateUtil.timestampFormat(refund.getCreatedAt());
+            }
+            this.pending = refund.getStatus() == RefundStatus.PENDING;
+            this.approved = refund.getStatus() == RefundStatus.APPROVED;
+        }
+    }
+
+    @Data
+    public static class ApproveDto{
+
+        private String paymentId;
+        private int amount;
+
+        public ApproveDto(Refund refund) {
+            this.paymentId = refund.getPayment().getPaymentId();
+            this.amount = refund.getPayment().getAmount();
         }
     }
 }
